@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  kaihelper:
+    build: .
+    command: python kaihelper/app.py
+    volumes:
+      - .:/app
