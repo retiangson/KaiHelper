@@ -1,47 +1,47 @@
 """
-contracts/user_dto.py
-Data Transfer Objects (DTOs) for User-related operations in KaiHelper.
-
-These classes define how data flows between:
-- UI Layer (Tkinter forms)
-- Service Layer (business logic)
-- Repository Layer (ORM persistence)
-- Future API endpoints
+User-related DTOs
 """
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Optional
 
-from dataclasses import dataclass
 
-
-# ----------- Response / Output DTOs ----------- #
+# A public view of a user (no password exposed externally)
 @dataclass
 class UserDTO:
-    """User details returned to the UI or API."""
-    user_id: int
-    name: str
+    username: str
     email: str
-    email_verified: bool
+    full_name: Optional[str]
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+    id: Optional[int] = None
+    password: Optional[str] = None  # internal use only
 
 
-# ----------- Input DTOs ----------- #
+# Register payload
 @dataclass
 class RegisterUserDTO:
-    """Data for user registration."""
-    name: str
+    username: str
     email: str
+    full_name: Optional[str]
     password: str
+    confirm_password: str
+    is_active: bool = True
+    created_at: datetime = field(default_factory=datetime.utcnow)
 
 
+# Login payload (username or email + password)
 @dataclass
 class LoginRequestDTO:
-    """Login request payload."""
-    email: str
+    username_or_email: str
     password: str
 
 
+# Profile response
 @dataclass
-class LoginResponseDTO:
-    """Response payload after successful login."""
-    user_id: int
-    name: str
+class UserProfileDTO:
+    username: str
+    full_name: Optional[str]
     email: str
-    message: str
+    created_at: datetime

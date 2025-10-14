@@ -1,5 +1,9 @@
 tkinter
-SQLAlchemy>=2.0.0
 mysql-connector-python
 pylint
 pytest
+fastapi
+uvicorn
+sqlalchemy
+bcrypt
+python-dotenv
