@@ -7,7 +7,7 @@ Handles conversion between User domain model and UserDTO.
 
 from kaihelper.domain.models.user import User
 from kaihelper.contracts.user_dto import UserDTO
-from datetime import datetime
+from datetime import datetime, timezone
 
 class UserMapper:
     """Maps between User entity and UserDTO."""
@@ -29,18 +29,13 @@ class UserMapper:
         )
 
     @staticmethod
-    def to_entity(dto) -> User | None:
-        """Converts any user-related DTO to a User entity."""
-        if not dto:
-            return None
-
-        user = User(
+    def to_entity(dto: UserDTO) -> User:
+        """Converts a UserDTO into a User entity."""
+        return User(
             username=getattr(dto, "username", None),
             email=getattr(dto, "email", None),
             password=getattr(dto, "password", None),
             is_active=getattr(dto, "is_active", True),
-            created_at=getattr(dto, "created_at", datetime.utcnow()),
-            updated_at=getattr(dto, "updated_at", datetime.utcnow()),
+            created_at=getattr(dto, "created_at", datetime.now(timezone.utc)),
+            updated_at=getattr(dto, "updated_at", datetime.now(timezone.utc)),
         )
-
-        return user

@@ -19,9 +19,10 @@ class ServiceInstaller:
 
     def resolve(self, interface: Type):
         service = self._service_map.get(interface)
-        if not service:
+        if (service := self._service_map.get(interface)) is not None:
+            return service
+        else:
             raise ValueError(f"Service for {interface.__name__} not registered.")
-        return service
 
     # Convenience
     def get_user_service(self) -> IUserService:

@@ -10,19 +10,27 @@ class UserService(IUserService):
         self._user_repo = user_repo
 
     def register_user(self, dto: RegisterUserDTO) -> ResultDTO:
+        """Register a new user after validating and hashing the password."""
+
+        if dto.password != dto.confirm_password:
+            return ResultDTO(False, "Passwords do not match")
+        
+        if getattr(dto, "password", None):
+            dto.password = pbkdf2_sha256.hash(dto.password)
+
         return self._user_repo.create_user(dto)
 
     def login_user(self, dto: LoginRequestDTO) -> ResultDTO:
         """Authenticate user by verifying username and password."""
 
-        user = self._user_repo.verify_credentials(dto.username_or_email, dto.password)
-
-        if not user:
+        if (user := self._user_repo.verify_credentials(dto.username_or_email, dto.password)):
+            return ResultDTO(True, "Login successful", data=user)
+        else:
             return ResultDTO(False, "Invalid credentials")
-        return ResultDTO(True, "Login successful", data=user)
 
     def get_user_profile(self, user_id: int) -> ResultDTO:
-        user = self._user_repo.get_user_by_id(user_id)
-        if not user:
+        if (user := self._user_repo.get_user_by_id(user_id)):
+            return ResultDTO(True, "Profile retrieved", data=user)
+        else:
             return ResultDTO(False, "User not found")
-        return ResultDTO(True, "Profile retrieved", data=user)
+

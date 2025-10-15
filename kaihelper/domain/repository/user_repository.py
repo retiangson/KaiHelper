@@ -33,15 +33,9 @@ class UserRepository(IUserRepository):
 
     # ---------- CRUD ----------
     def create_user(self, dto: RegisterUserDTO) -> ResultDTO:
-        if dto.password != dto.confirm_password:
-            return ResultDTO(False, "Passwords do not match")
-
         session: Session = self._SessionFactory()
 
-        try:
-            if getattr(dto, "password", None):
-                dto.password = pbkdf2_sha256.hash(dto.password)
-            
+        try:           
             new_user = UserMapper.to_entity(dto)
 
             session.add(new_user)
@@ -82,14 +76,12 @@ class UserRepository(IUserRepository):
     def get_username_or_email(self, username_or_email: str, password: str) -> UserDTO | None:
         session: Session = self._SessionFactory()
         try:
-            q = session.query(User).filter(
-                (User.email == username_or_email) | (User.username == username_or_email)
-            ).first()
-            if not q:
+            if (q := session.query(User)
+                    .filter((User.email == username_or_email) | (User.username == username_or_email))
+                    .first()) is not None:
+                return q if pbkdf2_sha256.verify(password, q.password) else None
+            else:
                 return None
-            if not pbkdf2_sha256.verify(password, q.password):
-                return None
-            return self._to_public_dict(q)
         finally:
             session.close()
 
@@ -97,13 +89,11 @@ class UserRepository(IUserRepository):
     def verify_credentials(self, username_or_email: str, password: str) -> Optional[dict]:
         session: Session = self._SessionFactory()
         try:
-            q = session.query(User).filter(
-                (User.email == username_or_email) | (User.username == username_or_email)
-            ).first()
-            if not q:
+            if (q := session.query(User)
+                    .filter((User.email == username_or_email) | (User.username == username_or_email))
+                    .first()) is not None:
+                return q if pbkdf2_sha256.verify(password, q.password) else None
+            else:
                 return None
-            if not pbkdf2_sha256.verify(password, q.password):
-                return None
-            return self._to_public_dict(q)
         finally:
             session.close()

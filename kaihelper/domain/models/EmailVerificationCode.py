@@ -14,6 +14,6 @@ class EmailVerificationCode(Base):
     __tablename__ = "email_verification_codes"
 
     code_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))  # ✅ Fixed reference
     code = Column(String(10), nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)

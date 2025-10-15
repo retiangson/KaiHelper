@@ -15,9 +15,10 @@ class DomainInstaller:
 
     def resolve(self, interface: Type):
         repo = self._repo_map.get(interface)
-        if not repo:
+        if (repo := self._repo_map.get(interface)) is not None:
+            return repo
+        else:
             raise ValueError(f"Repository for {interface.__name__} not registered.")
-        return repo
 
     # Convenience
     def get_user_repository(self) -> IUserRepository:
