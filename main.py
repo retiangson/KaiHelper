@@ -13,7 +13,7 @@ if __name__ == "__main__":
     try:
         uvicorn.run(
             "kaihelper.api.main_api:app",  # module:variable path
-            host="127.0.0.1",              # use 0.0.0.0 if testing from another device
+            host="0.0.0.0",              # use 0.0.0.0 if testing from another device
             port=8000,
             reload=False                    # auto-reload on code changes (for dev)
         )

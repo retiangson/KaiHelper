@@ -74,26 +74,38 @@ class UserRepository(IUserRepository):
             session.close()
             
     def get_username_or_email(self, username_or_email: str, password: str) -> UserDTO | None:
-        session: Session = self._SessionFactory()
-        try:
-            if (q := session.query(User)
+        """Retrieve a user by username or email and map to DTO."""
+        with SessionLocal() as session:
+            try:
+                user = (
+                    session.query(User)
                     .filter((User.email == username_or_email) | (User.username == username_or_email))
-                    .first()) is not None:
-                return q if pbkdf2_sha256.verify(password, q.password) else None
-            else:
-                return None
-        finally:
-            session.close()
+                    .first()
+                )
 
-    # Auth helper for login
-    def verify_credentials(self, username_or_email: str, password: str) -> Optional[dict]:
-        session: Session = self._SessionFactory()
-        try:
-            if (q := session.query(User)
-                    .filter((User.email == username_or_email) | (User.username == username_or_email))
-                    .first()) is not None:
-                return q if pbkdf2_sha256.verify(password, q.password) else None
-            else:
+                if not user or not pbkdf2_sha256.verify(password, user.password):
+                    return None
+
+                return UserMapper.to_dto(user)
+
+            except Exception as e:
                 return None
-        finally:
-            session.close()
+            
+    # Auth helper for login
+    def verify_credentials(self, username_or_email: str, password: str) -> Optional[UserDTO]:
+        """Verify user credentials and return a UserDTO if valid."""
+        with SessionLocal() as session:
+            try:
+                if (user := session.query(User)
+                        .filter((User.email == username_or_email) | (User.username == username_or_email))
+                        .first()) is None:
+                    return None
+
+                if not pbkdf2_sha256.verify(password, user.password):
+                    return None
+
+                return UserMapper.to_dto(user)
+
+            except Exception as e:
+                return None
+            

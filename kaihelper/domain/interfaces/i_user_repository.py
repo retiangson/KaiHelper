@@ -3,7 +3,7 @@ User Repository Interface
 -------------------------
 Defines the contract for user data access operations.
 """
-
+from typing import Optional, Dict, Any
 from abc import ABC, abstractmethod
 from kaihelper.contracts.user_dto import RegisterUserDTO, UserDTO
 from kaihelper.contracts.result_dto import ResultDTO
@@ -23,7 +23,7 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
-    def get_username_or_email(self, username_or_email: str, password: str) -> UserDTO:
+    def get_username_or_email(self, username_or_email: str, password: str) -> UserDTO | None:
         """Fetches a user by username or email and verifies the password."""
         pass
 
@@ -33,6 +33,6 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
-    def verify_credentials(self, username_or_email: str, password: str) -> dict | None:
+    def  verify_credentials(self, username_or_email: str, password: str) -> Optional[UserDTO]:
         """Verifies user credentials for login."""
         pass
