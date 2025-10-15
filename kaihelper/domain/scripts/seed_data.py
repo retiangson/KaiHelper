@@ -2,14 +2,10 @@
 Run this script to populate or reset the database with default seed data.
 
     python -m kaihelper.domain.scripts.seed_data
-
-Seed Data Script
-----------------
-Ensures the default admin user exists with the correct default credentials.
-If already present, its data will be force-updated.
 """
 
-from kaihelper.domain.core.database import SessionLocal
+from sqlalchemy import inspect
+from kaihelper.domain.core.database import SessionLocal, engine, Base
 from kaihelper.domain.models.user import User
 from passlib.hash import pbkdf2_sha256
 
@@ -17,6 +13,19 @@ from passlib.hash import pbkdf2_sha256
 def encrypt_password(password: str) -> str:
     """Encrypts a password using PBKDF2-SHA256."""
     return pbkdf2_sha256.hash(password)
+
+
+def ensure_schema_exists():
+    """Ensures all tables are created if the schema is empty."""
+    inspector = inspect(engine)
+    tables = inspector.get_table_names()
+
+    if not tables:
+        print("🧱 No tables found — creating database schema...")
+        Base.metadata.create_all(bind=engine)
+        print("✅ All tables created successfully.")
+    else:
+        print(f"ℹ️  Found {len(tables)} existing tables — skipping schema creation.")
 
 
 def seed_admin_user():
@@ -30,7 +39,6 @@ def seed_admin_user():
         existing = db.query(User).filter(User.username == admin_username).first()
 
         if existing:
-            # ✅ Force update existing admin user
             existing.email = admin_email
             existing.full_name = "Administrator"
             existing.password = encrypt_password(default_password)
@@ -38,7 +46,6 @@ def seed_admin_user():
             db.commit()
             print("🔄 Admin user updated to default values (username='admin', password='admin').")
         else:
-            # ✅ Create new admin user
             admin_user = User(
                 username=admin_username,
                 email=admin_email,
@@ -58,4 +65,6 @@ def seed_admin_user():
 
 
 if __name__ == "__main__":
-    seed_admin_user()
+    ensure_schema_exists()  # ✅ Step 1: create schema if empty
+    seed_admin_user()       # ✅ Step 2: seed admin user
+    print("🎉 Database seeding completed.")

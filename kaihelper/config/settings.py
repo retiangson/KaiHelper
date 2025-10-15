@@ -17,10 +17,10 @@ class Settings:
     # Database
     DB_ENGINE: str = os.getenv("DB_ENGINE", "sqlite").lower()   # sqlite | mysql
     DB_NAME: str = os.getenv("DB_NAME", "kaihelper")
-    DB_HOST: str = os.getenv("DB_HOST", "localhost")
+    DB_HOST: str = os.getenv("DB_HOST", "kaihelper-db.cfsiamsmc9v9.ap-southeast-2.rds.amazonaws.com")
     DB_PORT: str = os.getenv("DB_PORT", "3306")
-    DB_USER: str = os.getenv("DB_USER", "root")
-    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "")
+    DB_USER: str = os.getenv("DB_USER", "admin")
+    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "Ronfred6789")
 
     # Optional paths (used only when DB_ENGINE=sqlite)
     SQLITE_DIR: str = os.getenv("SQLITE_DIR", ".")
