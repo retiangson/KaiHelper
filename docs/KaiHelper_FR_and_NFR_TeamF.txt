@@ -1,0 +1,168 @@
+Week 11 - Activity 5: Validation and Verification
+Date: 2025-10-11
+
+Project Title: KaiHelper – Grocery Budgeting App
+Group Name: Team F
+Team Members:
+- Ronald Ephraim Tiangson
+- Fredierick Saladas
+
+Overview
+This document lists all Functional and Non-Functional Requirements for the project and indicates their current validation/verification status as of 2025-10-11. Status values:
+- PASSED = Implemented and verified by run/demo or test
+- IN PROGRESS = Partially implemented or awaiting verification
+- NOT PASSED = Not implemented yet or not verified
+
+============================================================
+FUNCTIONAL REQUIREMENTS (FR)
+============================================================
+
+Core Budgeting (MVP)
+FR1  Add purchase (item, category, price, qty, date, Local/Māori-owned tags) .......... NOT PASSED
+      Evidence/Notes: Implemented in starter app (Dashboard Quick Add → History list, totals update).
+
+FR2  Edit/Delete purchase ................................................................ NOT PASSED
+      Evidence/Notes: UI table present; editing/deleting not wired yet.
+
+FR3  View history (table, filters) ........................................................ NOT PASSED
+      Evidence/Notes: Table present with basic listing; filters not implemented yet.
+
+FR4  Weekly/Monthly summaries ............................................................ NOT PASSED
+      Evidence/Notes: BudgetService computes weekly/monthly totals; visible on Dashboard.
+
+FR5  Charts: spend by category (bar) + over time (line) .................................. NOT PASSED
+      Evidence/Notes: Planned for Summary screen; not implemented yet.
+
+FR6  Recent items quick-add .............................................................. NOT PASSED
+      Evidence/Notes: Recent item chips add last-priced items (demo mode).
+
+FR7  Categories management (basic add/select) ............................................ NOT PASSED
+      Evidence/Notes: Free-text category input works; no separate category manager UI.
+
+Cultural & Accessibility
+FR8  Bilingual UI toggle (English / Te Reo Māori) ........................................ NOT PASSED
+      Evidence/Notes: i18n files scaffolded (en/mi); UI toggle not wired.
+
+FR9  Cultural tags (Local / Māori-owned) + filter/summary ................................. NOT PASSED
+      Evidence/Notes: Tags captured and shown in History; filters/summary pending.
+
+FR10 Budget tips (EN & Te Reo) ........................................................... NOT PASSED
+      Evidence/Notes: Content scaffold; not surfaced in UI yet.
+
+Data & Import
+FR11 Local persistence (DB) .............................................................. NOT PASSED
+      Evidence/Notes: MySQL repository implemented; demo runs in-memory by default; DB hookup pending.
+
+FR12 CSV import (map, preview, import, error reporting) .................................. NOT PASSED
+      Evidence/Notes: Parser stub exists; UI flow pending.
+
+FR13 Export CSV (history) ................................................................ NOT PASSED
+      Evidence/Notes: Not implemented yet.
+
+Settings & App Behavior
+FR14 Preferences (language, tips, theme) ................................................. NOT PASSED
+      Evidence/Notes: Settings screen not implemented yet.
+
+FR15 Backup/Restore ..................................................................... NOT PASSED
+      Evidence/Notes: Not implemented yet.
+
+FR16 Offline usage (desktop) ............................................................. NOT PASSED
+      Evidence/Notes: Desktop app runs locally; no internet required.
+
+Admin/Dev
+FR17 Seed data (demo) .................................................................... NOT PASSED
+      Evidence/Notes: Sample CSV provided; auto seed process not added.
+
+FR18 App version visible in UI/about ..................................................... NOT PASSED
+      Evidence/Notes: Not implemented yet.
+
+
+============================================================
+NON-FUNCTIONAL REQUIREMENTS (NFR)
+============================================================
+
+Usability & Accessibility
+NFR1  Learnability: first purchase + monthly total ≤ 1 minute ............................. NOT PASSED
+       Notes: Flow is simple; timed validation pending.
+
+NFR2  Readability: Dark theme meets WCAG AA contrast ..................................... NOT PASSED
+       Notes: Dark palette applied; contrast verification pending.
+
+NFR3  Keyboard navigation for core flows ................................................. NOT PASSED
+       Notes: Tkinter defaults usable; explicit focus order/testing pending.
+
+NFR4  Localization coverage 100% (EN/Te Reo) ............................................. NOT PASSED
+       Notes: Strings exist; not fully wired or audited.
+
+Performance
+NFR5  Startup time ≤ 3s .................................................................. NOT PASSED
+       Notes: Acceptable in demo; formal measurement pending.
+
+NFR6  Add action latency ≤ 200ms (excl. DB I/O) .......................................... NOT PASSED
+       Notes: Feels instant in demo; no metrics yet.
+
+NFR7  Data volume: 10k rows with queries ≤ 2s ............................................ NOT PASSED
+       Notes: Not tested; may require indexing and pagination.
+
+Reliability & Data Integrity
+NFR8  Crash safety: no data loss on unexpected close ..................................... NOT PASSED
+       Notes: Transaction/error-handling to be added in DB mode.
+
+NFR9  Validation: numeric price, qty≥1; CSV row errors logged ............................ NOT PASSED
+       Notes: Basic UI numeric parsing done; full CSV error reporting pending.
+
+NFR10 Backups: round-trip ≥ 99.9% fidelity ............................................... NOT PASSED
+       Notes: Backup/restore feature not built.
+
+Security & Privacy
+NFR11 Local data storage only (no PII beyond user input) ................................ NOT PASSED
+       Notes: App is offline-first, local by default.
+
+NFR12 Secrets in .env; not in VCS ........................................................ NOT PASSED
+       Notes: .env.example provided; guidance in README.
+
+NFR13 Optional app PIN lock .............................................................. NOT PASSED
+       Notes: Out of scope for MVP.
+
+Maintainability & Quality
+NFR14 Architecture separation (UI/controllers/services/repos/models/i18n) ............... NOT PASSED
+       Notes: Implemented in starter scaffold.
+
+NFR15 Code quality: lint/type hints/docstrings ........................................... NOT PASSED
+       Notes: Conventions planned; tooling to be added.
+
+NFR16 Tests: ≥60% services/repos ......................................................... NOT PASSED
+       Notes: Tests not written yet.
+
+NFR17 CI: GitHub Actions runs lint/tests on PR ........................................... NOT PASSED
+       Notes: Workflow not added yet.
+
+Portability & Deployment
+NFR18 Packaging with PyInstaller (Windows) ............................................... NOT PASSED
+       Notes: To be added in later sprint.
+
+NFR19 DB options: in-memory fallback + MySQL via .env .................................... NOT PASSED
+       Notes: Implemented; auto-fallback when DB unavailable.
+
+NFR20 Offline-first (no network dependency) .............................................. NOT PASSED
+       Notes: App runs fully local.
+
+============================================================
+SUMMARY COUNTS
+============================================================
+Functional: PASSED = 0 | IN PROGRESS = 0 | NOT PASSED = 18
+Non-Functional: PASSED = 0 | IN PROGRESS = 0 | NOT PASSED = 20
+
+(Counts reflect current status and will be updated each sprint.)
+
+============================================================
+NEXT STEPS (toward full PASS)
+============================================================
+1) Implement Edit/Delete + Filters (FR2, FR3).
+2) Build Summary charts UI (FR5) and wire to services with test data.
+3) Finish CSV Import flow with mapping + preview + error log (FR12) and History export (FR13).
+4) Wire i18n toggle and audit string coverage (FR8, NFR4).
+5) Add unit tests for services/repos; set up GitHub Actions (NFR16–17).
+6) Package with PyInstaller and verify startup/performance thresholds (NFR5, NFR18).
+
+-- End of File --
