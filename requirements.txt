@@ -2,3 +2,8 @@ tkinter
 mysql-connector-python
 pylint
 pytest
+fastapi
+uvicorn
+sqlalchemy
+bcrypt
+python-dotenv
