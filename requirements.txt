@@ -1,9 +1,33 @@
 tkinter
 mysql-connector-python
-pylint
-pytest
+bcrypt
+
+# --- Core Framework ---
 fastapi
 uvicorn
 sqlalchemy
-bcrypt
+pymysql
 python-dotenv
+python-multipart
+
+# --- Data Validation & Models ---
+pydantic
+pydantic-settings
+
+# --- Security ---
+passlib[bcrypt]
+
+# --- AI Integration ---
+openai>=1.0.0
+
+# --- Image Processing / OCR ---
+pillow
+pytesseract
+
+# --- Database Utilities / Testing ---
+alembic
+pytest
+
+# --- Optional (Development Tools) ---
+pylint
+black
