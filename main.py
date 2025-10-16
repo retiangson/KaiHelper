@@ -1,25 +1,22 @@
-"""
-KaiHelper Main Entry Point
---------------------------
-Launches the KaiHelper FastAPI backend.
-Use this file to start the API server directly with Python.
-"""
+import os
+from dotenv import load_dotenv
 
-import sys
+# Load .env before anything else
+load_dotenv()
+
+# Optional debug log
+if not os.getenv("OPENAI_API_KEY"):
+    print("OPENAI_API_KEY not found in environment after load_dotenv()")
+else:
+    print(f"OPENAI_API_KEY loaded ({os.getenv('OPENAI_API_KEY')[:8]}...)")
+
 import uvicorn
+from kaihelper.api.main_api import app
 
 if __name__ == "__main__":
-    print("🚀 Starting KaiHelper FastAPI backend ...")
-    try:
-        uvicorn.run(
-            "kaihelper.api.main_api:app",  # module:variable path
-            host="0.0.0.0",              # use 0.0.0.0 if testing from another device
-            port=8000,
-            reload=False                    # auto-reload on code changes (for dev)
-        )
-    except KeyboardInterrupt:
-        print("\n👋 Server stopped by user.")
-        sys.exit(0)
-    except Exception as e:
-        print(f"\n❌ Unhandled error while starting API: {e}")
-        sys.exit(1)
+    uvicorn.run(
+        "kaihelper.api.main_api:app",
+        host="0.0.0.0", #127.0.0.1 local, 0.0.0.0 for network
+        port=8000,
+        reload=True,
+    )
