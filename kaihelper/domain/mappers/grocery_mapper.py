@@ -1,12 +1,30 @@
+"""
+GroceryMapper
+Converts between Grocery ORM models and GroceryDTO objects.
+"""
+
+# --- Standard library imports ---
+from datetime import datetime
+
+# --- First-party imports ---
 from kaihelper.domain.models.grocery import Grocery
 from kaihelper.contracts.grocery_dto import GroceryDTO
-from datetime import datetime
 
 
 class GroceryMapper:
+    """Mapper for converting between Grocery ORM model and GroceryDTO."""
+
     @staticmethod
     def to_model(dto: GroceryDTO) -> Grocery:
-        """Convert DTO → ORM Model for creation."""
+        """
+        Convert a GroceryDTO to a Grocery ORM model for database creation.
+
+        Args:
+            dto (GroceryDTO): Data transfer object representing grocery details.
+
+        Returns:
+            Grocery: ORM model instance representing a grocery record.
+        """
         return Grocery(
             grocery_id=dto.grocery_id,
             user_id=dto.user_id,
@@ -23,7 +41,15 @@ class GroceryMapper:
 
     @staticmethod
     def to_dto(model: Grocery) -> GroceryDTO:
-        """Convert ORM Model → DTO for API/Service layer."""
+        """
+        Convert a Grocery ORM model to a GroceryDTO for API/service layer usage.
+
+        Args:
+            model (Grocery): ORM model instance representing a grocery record.
+
+        Returns:
+            GroceryDTO: Data transfer object representation of the model.
+        """
         return GroceryDTO(
             grocery_id=model.grocery_id,
             user_id=model.user_id,
@@ -40,7 +66,16 @@ class GroceryMapper:
 
     @staticmethod
     def apply_updates(model: Grocery, dto: GroceryDTO) -> Grocery:
-        """Apply DTO → existing ORM Model field updates."""
+        """
+        Apply field updates from a GroceryDTO to an existing Grocery ORM model.
+
+        Args:
+            model (Grocery): Existing ORM model to update.
+            dto (GroceryDTO): Updated grocery data.
+
+        Returns:
+            Grocery: Updated ORM model instance.
+        """
         model.item_name = dto.item_name
         model.unit_price = dto.unit_price
         model.quantity = dto.quantity

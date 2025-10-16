@@ -3,113 +3,150 @@ ExpenseRepository
 Handles database persistence for Expense entities.
 """
 
-from datetime import datetime
+# --- Third-party imports ---
+from sqlalchemy.exc import SQLAlchemyError
+
+# --- First-party imports ---
+from kaihelper.domain.core.database import SessionLocal
 from kaihelper.domain.models.expense import Expense
 from kaihelper.domain.mappers.expense_mapper import ExpenseMapper
 from kaihelper.contracts.expense_dto import ExpenseDTO
 from kaihelper.contracts.result_dto import ResultDTO
-from kaihelper.domain.core.database import SessionLocal
 from kaihelper.domain.interfaces.iexpense_repository import IExpenseRepository
 
 
 class ExpenseRepository(IExpenseRepository):
-    """Repository class for CRUD operations on expenses."""
+    """Repository for CRUD operations on Expense entities."""
 
-    def __init__(self):
-        self.db = SessionLocal()
-
-    # ------------------------------------------------------------------
     def create(self, dto: ExpenseDTO) -> ResultDTO:
-        """Create a new expense record."""
-        try:
-            model = ExpenseMapper.to_model(dto)
-            self.db.add(model)
-            return self._commit_and_return(model, "Expense added successfully")
-        except Exception as e:
-            self.db.rollback()
-            return ResultDTO(False, f"Failed to add expense: {e}")
-        finally:
-            self.db.close()
+        """
+        Create a new expense record.
 
-    # ------------------------------------------------------------------
+        Args:
+            dto (ExpenseDTO): Expense data transfer object.
+
+        Returns:
+            ResultDTO: Operation result.
+        """
+        try:
+            with SessionLocal() as db_session:
+                model = ExpenseMapper.to_model(dto)
+                db_session.add(model)
+                db_session.commit()
+                db_session.refresh(model)
+                return ResultDTO.success(
+                    "Expense added successfully",
+                    ExpenseMapper.to_dto(model),
+                )
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to add expense: {repr(err)}")
+
     def update(self, dto: ExpenseDTO) -> ResultDTO:
-        """Update an existing expense record."""
+        """
+        Update an existing expense record.
+
+        Args:
+            dto (ExpenseDTO): Updated expense data.
+
+        Returns:
+            ResultDTO: Operation result.
+        """
         try:
-            expense = self.db.query(Expense).filter_by(expense_id=dto.expense_id).first()
-            if not expense:
-                return ResultDTO(False, "Expense not found")
+            with SessionLocal() as db_session:
+                expense = db_session.query(Expense).filter_by(expense_id=dto.expense_id).first()
+                if not expense:
+                    return ResultDTO.error("Expense not found")
 
-            ExpenseMapper.apply_updates(expense, dto)
-            return self._commit_and_return(expense, "Expense updated successfully")
-        except Exception as e:
-            self.db.rollback()
-            return ResultDTO(False, f"Failed to update expense: {e}")
-        finally:
-            self.db.close()
+                ExpenseMapper.apply_updates(expense, dto)
+                db_session.commit()
+                db_session.refresh(expense)
+                return ResultDTO.success(
+                    "Expense updated successfully",
+                    ExpenseMapper.to_dto(expense),
+                )
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to update expense: {repr(err)}")
 
-    # ------------------------------------------------------------------
     def get_all(self, user_id: int) -> ResultDTO:
-        """Retrieve all expenses for a specific user."""
-        try:
-            expenses = self.db.query(Expense).filter_by(user_id=user_id).all()
-            data = [ExpenseMapper.to_dto(e) for e in expenses]
-            return ResultDTO(True, "Expenses retrieved successfully", data)
-        except Exception as e:
-            return ResultDTO(False, f"Failed to retrieve expenses: {e}")
-        finally:
-            self.db.close()
+        """
+        Retrieve all expenses for a given user.
 
-    # ------------------------------------------------------------------
+        Args:
+            user_id (int): User identifier.
+
+        Returns:
+            ResultDTO: List of expenses.
+        """
+        try:
+            with SessionLocal() as db_session:
+                expenses = db_session.query(Expense).filter_by(user_id=user_id).all()
+                data = [ExpenseMapper.to_dto(expense) for expense in expenses]
+                return ResultDTO.success("Expenses retrieved successfully", data)
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to retrieve expenses: {repr(err)}")
+
     def get_by_id(self, expense_id: int) -> ResultDTO:
-        """Retrieve an expense record by ID."""
-        try:
-            expense = self.db.query(Expense).filter_by(expense_id=expense_id).first()
-            if expense:
-                return ResultDTO(True, "Expense retrieved successfully", ExpenseMapper.to_dto(expense))
-            return ResultDTO(False, "Expense not found")
-        except Exception as e:
-            return ResultDTO(False, f"Failed to retrieve expense: {e}")
-        finally:
-            self.db.close()
+        """
+        Retrieve an expense by its unique ID.
 
-    # ------------------------------------------------------------------
+        Args:
+            expense_id (int): Expense identifier.
+
+        Returns:
+            ResultDTO: Expense data or not found message.
+        """
+        try:
+            with SessionLocal() as db_session:
+                expense = db_session.get(Expense, expense_id)
+                if expense:
+                    return ResultDTO.success(
+                        "Expense retrieved successfully",
+                        ExpenseMapper.to_dto(expense),
+                    )
+                return ResultDTO.error("Expense not found")
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to retrieve expense: {repr(err)}")
+
     def get_by_grocery_id(self, grocery_id: int) -> ResultDTO:
-        """Retrieve an expense linked to a specific grocery item."""
-        try:
-            expense = self.db.query(Expense).filter_by(grocery_id=grocery_id).first()
-            if expense:
-                return ResultDTO(True, "Expense found", ExpenseMapper.to_dto(expense))
-            return ResultDTO(False, "Expense not found")
-        except Exception as e:
-            return ResultDTO(False, f"Failed to retrieve expense by grocery ID: {e}")
-        finally:
-            self.db.close()
+        """
+        Retrieve an expense linked to a specific grocery item.
 
-    # ------------------------------------------------------------------
+        Args:
+            grocery_id (int): Grocery identifier.
+
+        Returns:
+            ResultDTO: Expense data or error.
+        """
+        try:
+            with SessionLocal() as db_session:
+                expense = db_session.query(Expense).filter_by(grocery_id=grocery_id).first()
+                if expense:
+                    return ResultDTO.success(
+                        "Expense found",
+                        ExpenseMapper.to_dto(expense),
+                    )
+                return ResultDTO.error("Expense not found")
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to retrieve expense by grocery ID: {repr(err)}")
+
     def delete(self, expense_id: int) -> ResultDTO:
-        """Delete an expense record by ID."""
-        try:
-            expense = self.db.query(Expense).filter_by(expense_id=expense_id).first()
-            if not expense:
-                return ResultDTO(False, "Expense not found")
+        """
+        Delete an expense record by ID.
 
-            self.db.delete(expense)
-            return self._commit_and_return(None, "Expense deleted successfully", refresh=False)
-        except Exception as e:
-            self.db.rollback()
-            return ResultDTO(False, f"Failed to delete expense: {e}")
-        finally:
-            self.db.close()
+        Args:
+            expense_id (int): Expense identifier.
 
-    # ------------------------------------------------------------------
-    def _commit_and_return(self, model, message: str, refresh: bool = True) -> ResultDTO:
-        """Handle commit, refresh, and standardized success response."""
+        Returns:
+            ResultDTO: Operation result.
+        """
         try:
-            self.db.commit()
-            if model and refresh:
-                self.db.refresh(model)
-                return ResultDTO(True, message, ExpenseMapper.to_dto(model))
-            return ResultDTO(True, message)
-        except Exception as e:
-            self.db.rollback()
-            return ResultDTO(False, f"Database operation failed: {e}")
+            with SessionLocal() as db_session:
+                expense = db_session.get(Expense, expense_id)
+                if not expense:
+                    return ResultDTO.error("Expense not found")
+
+                db_session.delete(expense)
+                db_session.commit()
+                return ResultDTO.success("Expense deleted successfully")
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to delete expense: {repr(err)}")

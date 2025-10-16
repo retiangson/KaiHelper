@@ -1,111 +1,167 @@
 """
-User Repository (SQLAlchemy)
-- Hashes passwords (bcrypt)
+UserRepository (SQLAlchemy)
+Handles CRUD operations and authentication for User entities.
+- Hashes passwords (PBKDF2-SHA256)
 - Enforces unique email/username
+- Provides secure credential verification
 """
-from typing import Optional, Dict, Any
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-from kaihelper.domain.mappers.user_mapper import UserMapper
 
+from typing import Optional, Dict, Any
+
+# --- Third-party imports ---
+from passlib.hash import pbkdf2_sha256
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+
+# --- First-party imports ---
+from kaihelper.domain.mappers.user_mapper import UserMapper
 from kaihelper.domain.interfaces.i_user_repository import IUserRepository
 from kaihelper.contracts.user_dto import RegisterUserDTO, UserDTO
 from kaihelper.contracts.result_dto import ResultDTO
 from kaihelper.domain.core.database import SessionLocal
 from kaihelper.domain.models.user import User
-from passlib.hash import pbkdf2_sha256
 
 class UserRepository(IUserRepository):
-    def __init__(self) -> None:
-        self._SessionFactory = SessionLocal
+    """Repository for CRUD and authentication operations on User."""
 
-    # ---------- helpers ----------
-    def _to_public_dict(self, u: User) -> Dict[str, Any]:
+    @staticmethod
+    def _to_public_dict(user: User) -> Dict[str, Any]:
+        """
+        Convert a User ORM object to a public-safe dictionary.
+
+        Args:
+            user (User): User model instance.
+
+        Returns:
+            dict: Dictionary containing non-sensitive user data.
+        """
         return {
-            "id": u.id,
-            "username": u.username,
-            "email": u.email,
-            "full_name": u.full_name,
-            "is_active": u.is_active,
-            "created_at": u.created_at,
-            "updated_at": u.updated_at,
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "full_name": user.full_name,
+            "is_active": user.is_active,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at,
         }
 
-    # ---------- CRUD ----------
     def create_user(self, dto: RegisterUserDTO) -> ResultDTO:
-        session: Session = self._SessionFactory()
+        """
+        Create a new user account.
 
-        try:           
-            new_user = UserMapper.to_entity(dto)
+        Args:
+            dto (RegisterUserDTO): Data Transfer Object for registration.
 
-            session.add(new_user)
-            session.commit()
-            session.refresh(new_user)
-
-            return ResultDTO(True, "User registered successfully", data=self._to_public_dict(new_user))
-        except IntegrityError as ie:
-            session.rollback()
-            msg = str(getattr(ie, "orig", ie)).lower()
+        Returns:
+            ResultDTO: Operation result.
+        """
+        try:
+            with SessionLocal() as db_session:
+                new_user = UserMapper.to_entity(dto)
+                db_session.add(new_user)
+                db_session.commit()
+                db_session.refresh(new_user)
+                return ResultDTO.success(
+                    "User registered successfully",
+                    self._to_public_dict(new_user),
+                )
+        except IntegrityError as err:
+            msg = str(getattr(err, "orig", err)).lower()
             if "email" in msg:
-                return ResultDTO(False, f"Email '{dto.email}' already exists.")
+                return ResultDTO.error(f"Email '{dto.email}' already exists.")
             if "username" in msg:
-                return ResultDTO(False, f"Username '{dto.username}' already exists.")
-            return ResultDTO(False, "Unique constraint violated.")
-        except Exception as e:
-            session.rollback()
-            return ResultDTO(False, f"Failed to register user: {e}")
-        finally:
-            session.close()
+                return ResultDTO.error(f"Username '{dto.username}' already exists.")
+            return ResultDTO.error("Unique constraint violated.")
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to register user: {repr(err)}")
 
     def get_user_by_email(self, email: str) -> Optional[dict]:
-        session: Session = self._SessionFactory()
+        """
+        Retrieve a user by email.
+
+        Args:
+            email (str): Email address.
+
+        Returns:
+            dict | None: User dictionary or None if not found.
+        """
         try:
-            user = session.query(User).filter(User.email == email).first()
-            return self._to_public_dict(user) if user else None
-        finally:
-            session.close()
+            with SessionLocal() as db_session:
+                user = db_session.query(User).filter_by(email=email).first()
+                return self._to_public_dict(user) if user else None
+        except SQLAlchemyError:
+            return None
 
     def get_user_by_id(self, user_id: int) -> Optional[dict]:
-        session: Session = self._SessionFactory()
+        """
+        Retrieve a user by ID.
+
+        Args:
+            user_id (int): User identifier.
+
+        Returns:
+            dict | None: User dictionary or None if not found.
+        """
         try:
-            user = session.query(User).filter(User.id == user_id).first()
-            return self._to_public_dict(user) if user else None
-        finally:
-            session.close()
-            
-    def get_username_or_email(self, username_or_email: str, password: str) -> UserDTO | None:
-        """Retrieve a user by username or email and map to DTO."""
-        with SessionLocal() as session:
-            try:
+            with SessionLocal() as db_session:
+                user = db_session.get(User, user_id)
+                return self._to_public_dict(user) if user else None
+        except SQLAlchemyError:
+            return None
+
+    def get_username_or_email(
+        self, username_or_email: str, password: str
+    ) -> Optional[UserDTO]:
+        """
+        Retrieve and verify a user by username or email.
+
+        Args:
+            username_or_email (str): Username or email.
+            password (str): Plain-text password.
+
+        Returns:
+            UserDTO | None: User DTO if valid credentials, None otherwise.
+        """
+        try:
+            with SessionLocal() as db_session:
                 user = (
-                    session.query(User)
-                    .filter((User.email == username_or_email) | (User.username == username_or_email))
+                    db_session.query(User)
+                    .filter(
+                        (User.email == username_or_email)
+                        | (User.username == username_or_email)
+                    )
                     .first()
                 )
-
                 if not user or not pbkdf2_sha256.verify(password, user.password):
                     return None
-
                 return UserMapper.to_dto(user)
+        except SQLAlchemyError:
+            return None
 
-            except Exception as e:
-                return None
-            
-    # Auth helper for login
-    def verify_credentials(self, username_or_email: str, password: str) -> Optional[UserDTO]:
-        """Verify user credentials and return a UserDTO if valid."""
-        with SessionLocal() as session:
-            try:
-                if (user := session.query(User)
-                        .filter((User.email == username_or_email) | (User.username == username_or_email))
-                        .first()) is None:
+    def verify_credentials(
+        self, username_or_email: str, password: str
+    ) -> Optional[UserDTO]:
+        """
+        Verify login credentials.
+
+        Args:
+            username_or_email (str): Username or email input.
+            password (str): Plain-text password.
+
+        Returns:
+            UserDTO | None: User DTO if valid, None otherwise.
+        """
+        try:
+            with SessionLocal() as db_session:
+                user = (
+                    db_session.query(User)
+                    .filter(
+                        (User.email == username_or_email)
+                        | (User.username == username_or_email)
+                    )
+                    .first()
+                )
+                if not user or not pbkdf2_sha256.verify(password, user.password):
                     return None
-
-                if not pbkdf2_sha256.verify(password, user.password):
-                    return None
-
                 return UserMapper.to_dto(user)
-
-            except Exception as e:
-                return None
-            
+        except SQLAlchemyError:
+            return None

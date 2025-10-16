@@ -1,20 +1,30 @@
 """
-UserMapper Module
------------------
-Handles conversion between User domain model and UserDTO.
-
+UserMapper
+Converts between User ORM model and UserDTO objects.
 """
 
-from kaihelper.domain.models.user import User
-from kaihelper.contracts.user_dto import UserDTO
+# --- Standard library imports ---
 from datetime import datetime, timezone
 
+# --- First-party imports ---
+from kaihelper.domain.models.user import User
+from kaihelper.contracts.user_dto import UserDTO
+
+
 class UserMapper:
-    """Maps between User entity and UserDTO."""
+    """Mapper for converting between User entity and UserDTO."""
 
     @staticmethod
     def to_dto(user: User) -> UserDTO | None:
-        """Converts a User model instance to a UserDTO."""
+        """
+        Convert a User ORM model instance to a UserDTO.
+
+        Args:
+            user (User): ORM model instance representing a user.
+
+        Returns:
+            UserDTO | None: Data transfer object for the user, or None if input is invalid.
+        """
         if not user:
             return None
 
@@ -25,12 +35,20 @@ class UserMapper:
             full_name=user.full_name,
             is_active=user.is_active,
             created_at=user.created_at,
-            updated_at=user.updated_at
+            updated_at=user.updated_at,
         )
 
     @staticmethod
     def to_entity(dto: UserDTO) -> User:
-        """Converts a UserDTO into a User entity."""
+        """
+        Convert a UserDTO into a User ORM entity.
+
+        Args:
+            dto (UserDTO): Data transfer object containing user information.
+
+        Returns:
+            User: ORM model instance ready for database persistence.
+        """
         return User(
             username=getattr(dto, "username", None),
             email=getattr(dto, "email", None),

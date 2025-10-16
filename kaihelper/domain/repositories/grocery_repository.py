@@ -3,119 +3,155 @@ GroceryRepository
 Handles database persistence for Grocery entities.
 """
 
-from datetime import datetime
+# --- Third-party imports ---
+from sqlalchemy.exc import SQLAlchemyError
+
+# --- First-party imports ---
+from kaihelper.domain.core.database import SessionLocal
 from kaihelper.domain.models.grocery import Grocery
 from kaihelper.domain.mappers.grocery_mapper import GroceryMapper
 from kaihelper.contracts.grocery_dto import GroceryDTO
 from kaihelper.contracts.result_dto import ResultDTO
-from kaihelper.domain.core.database import SessionLocal
 from kaihelper.domain.interfaces.igrocery_repository import IGroceryRepository
 
 
 class GroceryRepository(IGroceryRepository):
-    """Repository class for CRUD operations on groceries."""
+    """Repository for CRUD operations on Grocery entities."""
 
-    def __init__(self):
-        self.db = SessionLocal()
-
-    # ------------------------------------------------------------------
     def create(self, dto: GroceryDTO) -> ResultDTO:
-        """Create a new grocery record."""
-        try:
-            model = GroceryMapper.to_model(dto)
-            self.db.add(model)
-            return self._commit_and_return(model, "Grocery added successfully")
-        except Exception as e:
-            self.db.rollback()
-            return ResultDTO(False, f"Failed to add grocery: {e}")
-        finally:
-            self.db.close()
+        """
+        Create a new grocery record.
 
-    # ------------------------------------------------------------------
+        Args:
+            dto (GroceryDTO): Grocery data transfer object.
+
+        Returns:
+            ResultDTO: Operation result.
+        """
+        try:
+            with SessionLocal() as db_session:
+                model = GroceryMapper.to_model(dto)
+                db_session.add(model)
+                db_session.commit()
+                db_session.refresh(model)
+                return ResultDTO.success(
+                    "Grocery added successfully",
+                    GroceryMapper.to_dto(model),
+                )
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to add grocery: {repr(err)}")
+
     def update(self, dto: GroceryDTO) -> ResultDTO:
-        """Update an existing grocery record."""
+        """
+        Update an existing grocery record.
+
+        Args:
+            dto (GroceryDTO): Updated grocery data.
+
+        Returns:
+            ResultDTO: Operation result.
+        """
         try:
-            grocery = self.db.query(Grocery).filter_by(grocery_id=dto.grocery_id).first()
-            if not grocery:
-                return ResultDTO(False, "Grocery not found")
+            with SessionLocal() as db_session:
+                grocery = db_session.query(Grocery).filter_by(
+                    grocery_id=dto.grocery_id
+                ).first()
+                if not grocery:
+                    return ResultDTO.error("Grocery not found")
 
-            GroceryMapper.apply_updates(grocery, dto)
-            return self._commit_and_return(grocery, "Grocery updated successfully")
-        except Exception as e:
-            self.db.rollback()
-            return ResultDTO(False, f"Failed to update grocery: {e}")
-        finally:
-            self.db.close()
+                GroceryMapper.apply_updates(grocery, dto)
+                db_session.commit()
+                db_session.refresh(grocery)
+                return ResultDTO.success(
+                    "Grocery updated successfully",
+                    GroceryMapper.to_dto(grocery),
+                )
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to update grocery: {repr(err)}")
 
-
-    # ------------------------------------------------------------------
     def get_by_name(self, user_id: int, item_name: str) -> ResultDTO:
-        """Retrieve grocery by name for a specific user."""
-        try:
-            grocery = self.db.query(Grocery).filter_by(user_id=user_id, item_name=item_name).first()
-            if grocery:
-                return ResultDTO(True, "Grocery found", GroceryMapper.to_dto(grocery))
-            return ResultDTO(False, "Grocery not found")
-        except Exception as e:
-            return ResultDTO(False, f"Failed to get grocery by name: {e}")
-        finally:
-            self.db.close()
+        """
+        Retrieve a grocery item by its name for a specific user.
 
-    # ------------------------------------------------------------------
+        Args:
+            user_id (int): User identifier.
+            item_name (str): Item name to search for.
+
+        Returns:
+            ResultDTO: Grocery record or not found message.
+        """
+        try:
+            with SessionLocal() as db_session:
+                grocery = db_session.query(Grocery).filter_by(
+                    user_id=user_id, item_name=item_name
+                ).first()
+                if grocery:
+                    return ResultDTO.success(
+                        "Grocery found",
+                        GroceryMapper.to_dto(grocery),
+                    )
+                return ResultDTO.error("Grocery not found")
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to get grocery by name: {repr(err)}")
+
     def get_all(self, user_id: int) -> ResultDTO:
-        """Retrieve all groceries for a specific user."""
-        try:
-            groceries = self.db.query(Grocery).filter_by(user_id=user_id).all()
-            data = [GroceryMapper.to_dto(g) for g in groceries]
-            return ResultDTO(True, "Groceries retrieved successfully", data)
-        except Exception as e:
-            return ResultDTO(False, f"Failed to retrieve groceries: {e}")
-        finally:
-            self.db.close()
+        """
+        Retrieve all groceries for a specific user.
 
-    # ------------------------------------------------------------------
+        Args:
+            user_id (int): User identifier.
+
+        Returns:
+            ResultDTO: List of groceries.
+        """
+        try:
+            with SessionLocal() as db_session:
+                groceries = db_session.query(Grocery).filter_by(user_id=user_id).all()
+                data = [GroceryMapper.to_dto(grocery) for grocery in groceries]
+                return ResultDTO.success("Groceries retrieved successfully", data)
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to retrieve groceries: {repr(err)}")
+
     def get_by_id(self, grocery_id: int) -> ResultDTO:
-        """Retrieve a grocery record by ID."""
-        try:
-            grocery = self.db.query(Grocery).filter_by(grocery_id=grocery_id).first()
-            if grocery:
-                return ResultDTO(True, "Grocery retrieved successfully", GroceryMapper.to_dto(grocery))
-            return ResultDTO(False, "Grocery not found")
-        except Exception as e:
-            return ResultDTO(False, f"Failed to retrieve grocery: {e}")
-        finally:
-            self.db.close()
+        """
+        Retrieve a grocery record by its ID.
 
-    # ------------------------------------------------------------------
+        Args:
+            grocery_id (int): Grocery identifier.
+
+        Returns:
+            ResultDTO: Grocery record or not found message.
+        """
+        try:
+            with SessionLocal() as db_session:
+                grocery = db_session.get(Grocery, grocery_id)
+                if grocery:
+                    return ResultDTO.success(
+                        "Grocery retrieved successfully",
+                        GroceryMapper.to_dto(grocery),
+                    )
+                return ResultDTO.error("Grocery not found")
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to retrieve grocery: {repr(err)}")
+
     def delete(self, grocery_id: int) -> ResultDTO:
-        """Delete a grocery record."""
-        try:
-            grocery = self.db.query(Grocery).filter_by(grocery_id=grocery_id).first()
-            if not grocery:
-                return ResultDTO(False, "Grocery not found")
-
-            self.db.delete(grocery)
-            return self._commit_and_return(None, "Grocery deleted successfully", refresh=False)
-        except Exception as e:
-            self.db.rollback()
-            return ResultDTO(False, f"Failed to delete grocery: {e}")
-        finally:
-            self.db.close()
-
-    # ------------------------------------------------------------------
-    def _commit_and_return(self, model, message: str, refresh: bool = True) -> ResultDTO:
         """
-        Extracted helper method used by create/update/delete.
-        Handles commit, refresh (optional), and standardized success response.
+        Delete a grocery record by its ID.
+
+        Args:
+            grocery_id (int): Grocery identifier.
+
+        Returns:
+            ResultDTO: Operation result.
         """
         try:
-            self.db.commit()
-            if model and refresh:
-                self.db.refresh(model)
-                return ResultDTO(True, message, GroceryMapper.to_dto(model))
-            return ResultDTO(True, message)
-        except Exception as e:
-            self.db.rollback()
-            return ResultDTO(False, f"Database operation failed: {e}")
-        finally:
-            self.db.close()
+            with SessionLocal() as db_session:
+                grocery = db_session.get(Grocery, grocery_id)
+                if not grocery:
+                    return ResultDTO.error("Grocery not found")
+
+                db_session.delete(grocery)
+                db_session.commit()
+                return ResultDTO.success("Grocery deleted successfully")
+        except SQLAlchemyError as err:
+            return ResultDTO.error(f"Failed to delete grocery: {repr(err)}")
