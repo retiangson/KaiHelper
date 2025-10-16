@@ -5,7 +5,7 @@ for receipt tracking and analytics.
 """
 
 # --- Third-party imports ---
-from sqlalchemy import Column, Integer, Float, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, Float, String, Date, ForeignKey, DateTime
 
 # --- First-party imports ---
 from kaihelper.domain.core.database import Base
@@ -52,8 +52,8 @@ class Expense(Base):
     amount = Column(Float, nullable=False)
     description = Column(String(255), nullable=True)
     expense_date = Column(Date, nullable=False)
-    created_at = Column(Date, nullable=False)
-    updated_at = Column(Date, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    updated_at = Column(DateTime, nullable=False)
     receipt_image = Column(String(255), nullable=True)
     notes = Column(String(500), nullable=True)
 

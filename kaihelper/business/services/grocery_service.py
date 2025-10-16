@@ -32,7 +32,7 @@ class GroceryService(IGroceryService):
         Returns:
             ResultDTO: Operation result.
         """
-        if not dto.item_name or dto.unit_price <= 0 or dto.quantity <= 0:
+        if not dto.item_name or not isinstance(dto.quantity, (int, float)) or dto.unit_price <= 0 or dto.quantity <= 0:
             return ResultDTO.fail(
                 "Invalid grocery details. Please check name, price, and quantity."
             )

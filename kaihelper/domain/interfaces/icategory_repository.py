@@ -18,7 +18,7 @@ class ICategoryRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_name(self, category_name: int) -> ResultDTO:
+    def get_by_name(self, category_name: str) -> ResultDTO:
         pass
 
     @abstractmethod
