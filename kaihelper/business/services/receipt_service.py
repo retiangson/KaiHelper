@@ -64,13 +64,13 @@ class ReceiptService(IReceiptService):
             total_amount = float(parsed.get("total_amount", 0.0))
             suggestion = parsed.get("suggestion", "")
             category_name = parsed.get("category", "Groceries")
-
             category_id = self._ensure_category(category_name)
-            expense_result = self._save_receipt_expense(
-                user_id, category_id, total_amount, suggestion
-            )
+
+            #Pass all GPT fields into _save_receipt_expense
+            expense_result = self._save_receipt_expense(user_id, category_id, parsed)
+
             if not expense_result.success:
-                return ResultDTO.error(
+                return ResultDTO.fail(
                     f"Failed to record receipt expense: {expense_result.message}"
                 )
 
@@ -84,7 +84,7 @@ class ReceiptService(IReceiptService):
                 f"{len(items)} items in {elapsed} ms"
             )
 
-            return ResultDTO.success(
+            return ResultDTO.ok(
                 "Receipt processed successfully",
                 ReceiptUploadResponseDTO(
                     category=category_name,
@@ -95,31 +95,40 @@ class ReceiptService(IReceiptService):
             )
 
         except Exception as err:  # pylint: disable=broad-except
-            return ResultDTO.error(f"Failed to process receipt: {repr(err)}")
+            return ResultDTO.fail(f"Failed to process receipt: {repr(err)}")
 
-    def _save_receipt_expense(
-        self, user_id: int, category_id: int | None, total_amount: float, comment: str
-    ) -> ResultDTO:
-        """Create or update a single expense record for the entire receipt."""
+    def _save_receipt_expense(self, user_id: int, category_id: int | None, parsed: dict) -> ResultDTO:
+        """Create a single expense record for the entire receipt, including metadata."""
         try:
             expense_dto = ExpenseDTO(
                 expense_id=None,
                 user_id=user_id,
                 grocery_id=None,
                 category_id=category_id,
-                amount=total_amount,
-                description=comment or "Auto-added from receipt scan",
+                amount=float(parsed.get("total_amount", 0.0)),
+                description=parsed.get("suggestion") or "Auto-added from receipt scan",
                 expense_date=datetime.now().date(),
                 notes="Auto-added from receipt scan",
+                # --- mapped new fields ---
+                store_name=parsed.get("store_name"),
+                store_address=parsed.get("store_address"),
+                receipt_number=parsed.get("receipt_number"),
+                payment_method=parsed.get("payment_method"),
+                currency=parsed.get("currency"),
+                subtotal_amount=parsed.get("subtotal_amount"),
+                tax_amount=parsed.get("tax_amount"),
+                discount_amount=parsed.get("discount_amount"),
+                due_date=parsed.get("due_date"),
+                suggestion=parsed.get("suggestion"),
             )
 
             print(
                 f"[ReceiptService] Creating receipt-level expense "
-                f"(Category ID: {category_id}, Total: {total_amount})"
+                f"(Store: {parsed.get('store_name')}, Total: {parsed.get('total_amount')})"
             )
             return self.expense_service.add_expense(expense_dto)
         except Exception as err:  # pylint: disable=broad-except
-            return ResultDTO.error(f"Failed to save receipt expense: {repr(err)}")
+            return ResultDTO.fail(f"Failed to save receipt expense: {repr(err)}")
 
     def _process_item(
         self, user_id: int, item: ExtractedItemDTO, category_id: int | None, expense_id: int | None

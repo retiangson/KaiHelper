@@ -34,12 +34,12 @@ class GroceryRepository(IGroceryRepository):
                 db_session.add(model)
                 db_session.commit()
                 db_session.refresh(model)
-                return ResultDTO.success(
+                return ResultDTO.ok(
                     "Grocery added successfully",
                     GroceryMapper.to_dto(model),
                 )
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to add grocery: {repr(err)}")
+            return ResultDTO.fail(f"Failed to add grocery: {repr(err)}")
 
     def update(self, dto: GroceryDTO) -> ResultDTO:
         """
@@ -57,17 +57,17 @@ class GroceryRepository(IGroceryRepository):
                     grocery_id=dto.grocery_id
                 ).first()
                 if not grocery:
-                    return ResultDTO.error("Grocery not found")
+                    return ResultDTO.fail("Grocery not found")
 
                 GroceryMapper.apply_updates(grocery, dto)
                 db_session.commit()
                 db_session.refresh(grocery)
-                return ResultDTO.success(
+                return ResultDTO.ok(
                     "Grocery updated successfully",
                     GroceryMapper.to_dto(grocery),
                 )
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to update grocery: {repr(err)}")
+            return ResultDTO.fail(f"Failed to update grocery: {repr(err)}")
 
     def get_by_name(self, user_id: int, item_name: str) -> ResultDTO:
         """
@@ -86,13 +86,13 @@ class GroceryRepository(IGroceryRepository):
                     user_id=user_id, item_name=item_name
                 ).first()
                 if grocery:
-                    return ResultDTO.success(
+                    return ResultDTO.ok(
                         "Grocery found",
                         GroceryMapper.to_dto(grocery),
                     )
-                return ResultDTO.error("Grocery not found")
+                return ResultDTO.fail("Grocery not found")
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to get grocery by name: {repr(err)}")
+            return ResultDTO.fail(f"Failed to get grocery by name: {repr(err)}")
 
     def get_all(self, user_id: int) -> ResultDTO:
         """
@@ -108,9 +108,9 @@ class GroceryRepository(IGroceryRepository):
             with SessionLocal() as db_session:
                 groceries = db_session.query(Grocery).filter_by(user_id=user_id).all()
                 data = [GroceryMapper.to_dto(grocery) for grocery in groceries]
-                return ResultDTO.success("Groceries retrieved successfully", data)
+                return ResultDTO.ok("Groceries retrieved successfully", data)
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to retrieve groceries: {repr(err)}")
+            return ResultDTO.fail(f"Failed to retrieve groceries: {repr(err)}")
 
     def get_by_id(self, grocery_id: int) -> ResultDTO:
         """
@@ -126,13 +126,13 @@ class GroceryRepository(IGroceryRepository):
             with SessionLocal() as db_session:
                 grocery = db_session.get(Grocery, grocery_id)
                 if grocery:
-                    return ResultDTO.success(
+                    return ResultDTO.ok(
                         "Grocery retrieved successfully",
                         GroceryMapper.to_dto(grocery),
                     )
-                return ResultDTO.error("Grocery not found")
+                return ResultDTO.fail("Grocery not found")
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to retrieve grocery: {repr(err)}")
+            return ResultDTO.fail(f"Failed to retrieve grocery: {repr(err)}")
 
     def delete(self, grocery_id: int) -> ResultDTO:
         """
@@ -148,10 +148,10 @@ class GroceryRepository(IGroceryRepository):
             with SessionLocal() as db_session:
                 grocery = db_session.get(Grocery, grocery_id)
                 if not grocery:
-                    return ResultDTO.error("Grocery not found")
+                    return ResultDTO.fail("Grocery not found")
 
                 db_session.delete(grocery)
                 db_session.commit()
-                return ResultDTO.success("Grocery deleted successfully")
+                return ResultDTO.ok("Grocery deleted successfully")
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to delete grocery: {repr(err)}")
+            return ResultDTO.fail(f"Failed to delete grocery: {repr(err)}")

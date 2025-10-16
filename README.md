@@ -244,7 +244,7 @@ DB_NAME=kaihelper
 ### 🧰 Developer Notes
 
 * Always import DTOs in endpoints (not ORM models)
-* Use `ResultDTO.success()` / `.error()` for consistent API responses
+* Use `ResultDTO.ok()` / `.error()` for consistent API responses
 * All passwords must be hashed before saving
 * Use `SessionLocal()` from `domain/core/database.py` for transactions
 

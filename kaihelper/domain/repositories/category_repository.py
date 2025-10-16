@@ -36,12 +36,12 @@ class CategoryRepository:
                 db_session.add(model)
                 db_session.commit()
                 db_session.refresh(model)
-                return ResultDTO.success(
+                return ResultDTO.ok(
                     "Category created successfully",
                     CategoryMapper.to_dto(model),
                 )
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to create category: {repr(err)}")
+            return ResultDTO.fail(f"Failed to create category: {repr(err)}")
 
     def get_all(self) -> ResultDTO:
         """
@@ -54,9 +54,9 @@ class CategoryRepository:
             with SessionLocal() as db_session:
                 categories = db_session.query(Category).all()
                 data = [CategoryMapper.to_dto(cat) for cat in categories]
-                return ResultDTO.success("Categories retrieved successfully", data)
+                return ResultDTO.ok("Categories retrieved successfully", data)
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to retrieve categories: {repr(err)}")
+            return ResultDTO.fail(f"Failed to retrieve categories: {repr(err)}")
 
     def get_by_id(self, category_id: int) -> ResultDTO:
         """
@@ -72,13 +72,13 @@ class CategoryRepository:
             with SessionLocal() as db_session:
                 category = db_session.get(Category, category_id)
                 if category:
-                    return ResultDTO.success(
+                    return ResultDTO.ok(
                         "Category found",
                         CategoryMapper.to_dto(category),
                     )
-                return ResultDTO.error("Category not found")
+                return ResultDTO.fail("Category not found")
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Error retrieving category: {repr(err)}")
+            return ResultDTO.fail(f"Error retrieving category: {repr(err)}")
 
     def delete(self, category_id: int) -> ResultDTO:
         """
@@ -94,13 +94,13 @@ class CategoryRepository:
             with SessionLocal() as db_session:
                 category = db_session.get(Category, category_id)
                 if not category:
-                    return ResultDTO.error("Category not found")
+                    return ResultDTO.fail("Category not found")
 
                 db_session.delete(category)
                 db_session.commit()
-                return ResultDTO.success("Category deleted successfully")
+                return ResultDTO.ok("Category deleted successfully")
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to delete category: {repr(err)}")
+            return ResultDTO.fail(f"Failed to delete category: {repr(err)}")
 
     def get_by_name(self, category_name: str) -> ResultDTO:
         """
@@ -120,10 +120,10 @@ class CategoryRepository:
                     .first()
                 )
                 if category:
-                    return ResultDTO.success(
+                    return ResultDTO.ok(
                         "Category found",
                         CategoryMapper.to_dto(category),
                     )
-                return ResultDTO.error("Category not found")
+                return ResultDTO.fail("Category not found")
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Error retrieving category: {repr(err)}")
+            return ResultDTO.fail(f"Error retrieving category: {repr(err)}")

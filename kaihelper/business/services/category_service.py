@@ -31,9 +31,9 @@ class CategoryService(ICategoryService):
         """
         try:
             categories = self._repo.get_all()
-            return ResultDTO.success("Categories retrieved successfully", categories)
+            return ResultDTO.ok("Categories retrieved successfully", categories)
         except Exception as err:
-            return ResultDTO.error(f"Failed to retrieve categories: {repr(err)}")
+            return ResultDTO.fail(f"Failed to retrieve categories: {repr(err)}")
 
     def add_category(self, dto: CategoryDTO) -> ResultDTO:
         """
@@ -48,10 +48,10 @@ class CategoryService(ICategoryService):
         try:
             result = self._repo.create(dto)
             if result.success:
-                return ResultDTO.success("Category added successfully", result.data)
-            return ResultDTO.error(result.message)
+                return ResultDTO.ok("Category added successfully", result.data)
+            return ResultDTO.fail(result.message)
         except Exception as err:
-            return ResultDTO.error(f"Failed to add category: {repr(err)}")
+            return ResultDTO.fail(f"Failed to add category: {repr(err)}")
 
     def delete_category(self, category_id: int) -> ResultDTO:
         """
@@ -66,10 +66,10 @@ class CategoryService(ICategoryService):
         try:
             result = self._repo.delete(category_id)
             if result.success:
-                return ResultDTO.success("Category deleted successfully")
-            return ResultDTO.error(result.message)
+                return ResultDTO.ok("Category deleted successfully")
+            return ResultDTO.fail(result.message)
         except Exception as err:
-            return ResultDTO.error(f"Failed to delete category: {repr(err)}")
+            return ResultDTO.fail(f"Failed to delete category: {repr(err)}")
 
     def get_category(self, category_name: str) -> ResultDTO:
         """
@@ -84,7 +84,7 @@ class CategoryService(ICategoryService):
         try:
             category = self._repo.get_by_name(category_name)
             if category.success:
-                return ResultDTO.success("Category retrieved successfully", category.data)
-            return ResultDTO.error("Category not found")
+                return ResultDTO.ok("Category retrieved successfully", category.data)
+            return ResultDTO.fail("Category not found")
         except Exception as err:
-            return ResultDTO.error(f"Failed to retrieve category: {repr(err)}")
+            return ResultDTO.fail(f"Failed to retrieve category: {repr(err)}")

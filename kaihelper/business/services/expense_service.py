@@ -122,10 +122,10 @@ class ExpenseService(IExpenseService):
         try:
             result = self._expense_repo.get_by_grocery_id(grocery_id)
             if result and result.success and result.data:
-                return ResultDTO.success("Expense found", result.data)
-            return ResultDTO.error("Expense not found")
+                return ResultDTO.ok("Expense found", result.data)
+            return ResultDTO.fail("Expense not found")
         except Exception as err:
-            return ResultDTO.error(f"Failed to find expense by grocery ID: {repr(err)}")
+            return ResultDTO.fail(f"Failed to find expense by grocery ID: {repr(err)}")
 
     def get_expense_by_id(self, expense_id: int) -> ResultDTO:
         """
@@ -167,8 +167,8 @@ class ExpenseService(IExpenseService):
 
             result = self._expense_repo.delete(expense_id)
             if not result.success:
-                return ResultDTO.error(result.message)
+                return ResultDTO.fail(result.message)
 
-            return ResultDTO.success("Expense deleted and budget restored.", result.data)
+            return ResultDTO.ok("Expense deleted and budget restored.", result.data)
         except Exception as err:
-            return ResultDTO.error(f"Failed to delete expense: {repr(err)}")
+            return ResultDTO.fail(f"Failed to delete expense: {repr(err)}")

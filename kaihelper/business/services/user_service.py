@@ -36,7 +36,7 @@ class UserService(IUserService):
             ResultDTO: Operation result indicating success or failure.
         """
         if dto.password != dto.confirm_password:
-            return ResultDTO.error("Passwords do not match")
+            return ResultDTO.fail("Passwords do not match")
 
         if getattr(dto, "password", None):
             dto.password = pbkdf2_sha256.hash(dto.password)
@@ -55,8 +55,8 @@ class UserService(IUserService):
         """
         user = self._user_repo.verify_credentials(dto.username_or_email, dto.password)
         if user:
-            return ResultDTO.success("Login successful", data=user)
-        return ResultDTO.error("Invalid credentials")
+            return ResultDTO.ok("Login successful", data=user)
+        return ResultDTO.fail("Invalid credentials")
 
     def get_user_profile(self, user_id: int) -> ResultDTO:
         """
@@ -70,5 +70,5 @@ class UserService(IUserService):
         """
         user = self._user_repo.get_user_by_id(user_id)
         if user:
-            return ResultDTO.success("Profile retrieved", data=user)
-        return ResultDTO.error("User not found")
+            return ResultDTO.ok("Profile retrieved", data=user)
+        return ResultDTO.fail("User not found")

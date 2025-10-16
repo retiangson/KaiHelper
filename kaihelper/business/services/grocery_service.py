@@ -33,7 +33,7 @@ class GroceryService(IGroceryService):
             ResultDTO: Operation result.
         """
         if not dto.item_name or dto.unit_price <= 0 or dto.quantity <= 0:
-            return ResultDTO.error(
+            return ResultDTO.fail(
                 "Invalid grocery details. Please check name, price, and quantity."
             )
         return self._repo.create(dto)
@@ -49,7 +49,7 @@ class GroceryService(IGroceryService):
             ResultDTO: Operation result with grocery list.
         """
         if not user_id:
-            return ResultDTO.error("User ID is required.")
+            return ResultDTO.fail("User ID is required.")
         return self._repo.get_all(user_id)
 
     def find_by_name(self, user_id: int, item_name: str) -> ResultDTO:
@@ -66,10 +66,10 @@ class GroceryService(IGroceryService):
         try:
             result = self._repo.get_by_name(user_id, item_name)
             if result and result.success and result.data:
-                return ResultDTO.success("Grocery found", result.data)
-            return ResultDTO.error("Grocery not found")
+                return ResultDTO.ok("Grocery found", result.data)
+            return ResultDTO.fail("Grocery not found")
         except Exception as err:  # pylint: disable=broad-except
-            return ResultDTO.error(f"Failed to find grocery by name: {repr(err)}")
+            return ResultDTO.fail(f"Failed to find grocery by name: {repr(err)}")
 
     def update_grocery(self, dto: GroceryDTO) -> ResultDTO:
         """
@@ -83,13 +83,13 @@ class GroceryService(IGroceryService):
         """
         try:
             if not dto.grocery_id:
-                return ResultDTO.error("Grocery ID is required for update.")
+                return ResultDTO.fail("Grocery ID is required for update.")
             if dto.unit_price <= 0 or dto.quantity <= 0:
-                return ResultDTO.error("Invalid grocery details for update.")
+                return ResultDTO.fail("Invalid grocery details for update.")
 
             result = self._repo.update(dto)
             if result and result.success:
-                return ResultDTO.success("Grocery updated successfully", result.data)
-            return ResultDTO.error(result.message if result else "Failed to update grocery")
+                return ResultDTO.ok("Grocery updated successfully", result.data)
+            return ResultDTO.fail(result.message if result else "Failed to update grocery")
         except Exception as err:  # pylint: disable=broad-except
-            return ResultDTO.error(f"Error updating grocery: {repr(err)}")
+            return ResultDTO.fail(f"Error updating grocery: {repr(err)}")

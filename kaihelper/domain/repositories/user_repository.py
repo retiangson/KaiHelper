@@ -60,19 +60,19 @@ class UserRepository(IUserRepository):
                 db_session.add(new_user)
                 db_session.commit()
                 db_session.refresh(new_user)
-                return ResultDTO.success(
+                return ResultDTO.ok(
                     "User registered successfully",
                     self._to_public_dict(new_user),
                 )
         except IntegrityError as err:
             msg = str(getattr(err, "orig", err)).lower()
             if "email" in msg:
-                return ResultDTO.error(f"Email '{dto.email}' already exists.")
+                return ResultDTO.fail(f"Email '{dto.email}' already exists.")
             if "username" in msg:
-                return ResultDTO.error(f"Username '{dto.username}' already exists.")
-            return ResultDTO.error("Unique constraint violated.")
+                return ResultDTO.fail(f"Username '{dto.username}' already exists.")
+            return ResultDTO.fail("Unique constraint violated.")
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to register user: {repr(err)}")
+            return ResultDTO.fail(f"Failed to register user: {repr(err)}")
 
     def get_user_by_email(self, email: str) -> Optional[dict]:
         """

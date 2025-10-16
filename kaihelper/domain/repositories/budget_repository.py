@@ -36,12 +36,12 @@ class BudgetRepository:
                 db_session.add(model)
                 db_session.commit()
                 db_session.refresh(model)
-                return ResultDTO.success(
+                return ResultDTO.ok(
                     "Budget created successfully",
                     BudgetMapper.to_dto(model),
                 )
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to create budget: {repr(err)}")
+            return ResultDTO.fail(f"Failed to create budget: {repr(err)}")
 
     def get_active_budgets(self, user_id: int) -> ResultDTO:
         """
@@ -57,9 +57,9 @@ class BudgetRepository:
             with SessionLocal() as db_session:
                 budgets = db_session.query(Budget).filter_by(user_id=user_id).all()
                 data = [BudgetMapper.to_dto(budget) for budget in budgets]
-                return ResultDTO.success(
+                return ResultDTO.ok(
                     "Budgets retrieved successfully",
                     data,
                 )
         except SQLAlchemyError as err:
-            return ResultDTO.error(f"Failed to retrieve budgets: {repr(err)}")
+            return ResultDTO.fail(f"Failed to retrieve budgets: {repr(err)}")
