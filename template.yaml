@@ -9,6 +9,7 @@ Globals:
     Runtime: python3.10
     Architectures:
       - x86_64
+      - arm64
 
 # 👇 Declare all required parameters
 Parameters:
