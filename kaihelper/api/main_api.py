@@ -1,7 +1,6 @@
 """
 FastAPI entry point for KaiHelper (Lambda + API Gateway).
-Places Swagger/OpenAPI under /api/* so API Gateway forwards them.
-Adds explicit /api/openapi.json route and debug helpers.
+Swagger/OpenAPI mounted under the stage-aware path so API Gateway forwards correctly.
 """
 import os
 from fastapi import FastAPI, Request
@@ -9,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from mangum import Mangum
 
-# Optional: load .env locally only (ignored in Lambda)
+# Optional: load .env locally (ignored in Lambda)
 try:
     from dotenv import load_dotenv
     import pathlib
@@ -19,17 +18,20 @@ try:
 except Exception:  # pylint: disable=broad-except
     pass
 
-# Keep docs/schema under /api/* (Gateway usually proxies /api/{proxy+})
-API_BASE = "/api"
+# ---- Stage awareness ----
+# Set this Lambda env var to your API Gateway stage base path, e.g. "/Prod"
+BASE_PATH = os.getenv("STAGE_BASE", "").rstrip("/")         # "" locally, "/Prod" in prod
+API_BASE  = f"{BASE_PATH}/api" if BASE_PATH else "/api"     # stage-aware API prefix
 
 app = FastAPI(
     title="KaiHelper API",
     version="1.0",
     description="Grocery Budgeting App Backend",
+    # IMPORTANT: docs + schema include the stage prefix
     docs_url=f"{API_BASE}/docs",
     openapi_url=f"{API_BASE}/openapi.json",
     redoc_url=f"{API_BASE}/redoc",
-    # DO NOT set root_path here; Mangum injects stage (/Prod) automatically.
+    # DO NOT set root_path (Mangum sometimes sets it, sometimes not; we control paths explicitly)
 )
 
 # CORS (tighten in prod)
@@ -63,6 +65,7 @@ def on_startup():
     try:
         Base.metadata.create_all(bind=engine)
         print("[KaiHelper API] Database initialized.")
+        print(f"[KaiHelper API] BASE_PATH={BASE_PATH!r} API_BASE={API_BASE!r}")
     except Exception as e:  # pylint: disable=broad-except
         print(f"[KaiHelper API] Startup error: {e}")
 
@@ -82,30 +85,24 @@ def root():
 def health():
     return {"status": "ok"}
 
-# --- Explicit openapi endpoint (hardens availability under /api/*) ---
-@app.get("/api/openapi.json", include_in_schema=False)
+# Explicit OpenAPI endpoint (same path as openapi_url, keeps things robust)
+@app.get(f"{API_BASE}/openapi.json", include_in_schema=False)
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     schema = get_openapi(title=app.title, version=app.version, routes=app.routes)
-    # Make "Try it out" use the correct stage-aware base path
-    schema["servers"] = [{"url": "/"}]  # Mangum injects /Prod at runtime
+    # Ensure "Try it out" uses stage-aware base
+    schema["servers"] = [{"url": BASE_PATH or "/"}]
     app.openapi_schema = schema
     return app.openapi_schema
 
-# --- Debug helpers (remove later) ---
-@app.get("/api/_debug/info", include_in_schema=False)
+# Tiny debug (optional)
+@app.get(f"{API_BASE}/_debug/info", include_in_schema=False)
 def debug_info(request: Request):
     return {
         "root_path_seen_by_app": request.scope.get("root_path"),
         "docs_url": app.docs_url,
         "openapi_url": app.openapi_url,
-        "routes_count": len(app.routes),
     }
 
-@app.get("/api/_debug/routes", include_in_schema=False)
-def debug_routes():
-    return sorted([getattr(r, "path", str(r)) for r in app.routes])
-
-# Let Mangum infer stage root_path from the event (no manual base path)
 handler = Mangum(app)
