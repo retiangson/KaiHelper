@@ -8,10 +8,8 @@ Globals:
     MemorySize: 512
     Runtime: python3.10
     Architectures:
-      - x86_64
-      - arm64
+      - arm64   # <-- exactly ONE value; use x86_64 if you prefer
 
-# 👇 Declare all required parameters
 Parameters:
   DB_HOST:
     Type: String
@@ -26,6 +24,10 @@ Parameters:
     Type: String
     Description: Database password
     NoEcho: true
+  DB_PORT:
+    Type: String
+    Default: "3306"
+    Description: Database port (as string for env var)
   OPENAI_API_KEY:
     Type: String
     Description: OpenAI API key for receipt parsing
@@ -36,15 +38,18 @@ Resources:
     Properties:
       FunctionName: kaihelper-function
       CodeUri: .
-      Handler: kaihelper.api.main_api.handler
-      Runtime: python3.10
-      Architectures:
-        - x86_64
+      Handler: kaihelper.api.main_api.handler   # Mangum(app) -> "handler"
+      # Do NOT set Architectures or Runtime here; they are in Globals
       Events:
-        ApiGateway:
+        ApiProxy:
           Type: Api
           Properties:
             Path: /{proxy+}
+            Method: ANY
+        ApiRoot:
+          Type: Api
+          Properties:
+            Path: /
             Method: ANY
       Environment:
         Variables:
@@ -52,7 +57,12 @@ Resources:
           DB_NAME: !Ref DB_NAME
           DB_USER: !Ref DB_USER
           DB_PASSWORD: !Ref DB_PASSWORD
-          DB_PORT: 3306
+          DB_PORT: !Ref DB_PORT
           OPENAI_API_KEY: !Ref OPENAI_API_KEY
           USE_GPT4: "true"
           DB_ENGINE: "mysql"
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway base URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
