@@ -8,7 +8,7 @@ Globals:
     MemorySize: 512
     Runtime: python3.10
     Architectures:
-      - arm64   # <-- exactly ONE value; use x86_64 if you prefer
+      - x86_64   # fast on GitHub runners; one value only
 
 Parameters:
   DB_HOST:
@@ -27,7 +27,7 @@ Parameters:
   DB_PORT:
     Type: String
     Default: "3306"
-    Description: Database port (as string for env var)
+    Description: Database port (string for env var)
   OPENAI_API_KEY:
     Type: String
     Description: OpenAI API key for receipt parsing
@@ -38,8 +38,7 @@ Resources:
     Properties:
       FunctionName: kaihelper-function
       CodeUri: .
-      Handler: kaihelper.api.main_api.handler   # Mangum(app) -> "handler"
-      # Do NOT set Architectures or Runtime here; they are in Globals
+      Handler: kaihelper.api.main_api.handler   # Mangum(app) exposes "handler"
       Events:
         ApiProxy:
           Type: Api
