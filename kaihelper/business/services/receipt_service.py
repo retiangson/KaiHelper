@@ -10,6 +10,8 @@ import base64
 import json
 import time
 from datetime import datetime
+from io import BytesIO
+from PIL import Image
 
 # --- Third-party imports ---
 from openai import OpenAI
@@ -201,66 +203,76 @@ class ReceiptService(IReceiptService):
         Returns category, items, total amount, and suggestion.
         """
         try:
-            b64_image = base64.b64encode(image_bytes).decode("utf-8")
+            #b64_image = base64.b64encode(image_bytes).decode("utf-8")
+            with Image.open(BytesIO(image_bytes)) as _img:
+                _img = _img.convert("RGB")
+                _buf = BytesIO()
+                _img.save(_buf, format="JPEG", quality=90, optimize=True)
+                jpeg_bytes = _buf.getvalue()
+
+            b64_image = base64.b64encode(jpeg_bytes).decode("ascii")
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {
                         "role": "system",
                         "content": (
-                                "You are an intelligent receipt analysis assistant. "
-                                "Your goal is to extract clean, structured data from an image of a purchase receipt. "
-                                "Always respond with valid JSON only — no explanations, no text outside JSON. "
-                                "Identify one primary category for the receipt (e.g., Groceries, Gas, Dining, Shopping, Bills, Services, Utilities, Pharmacy, etc.). "
-                                "Detect and include as many useful fields as possible. "
-                                "Ensure every string field is trimmed and capitalized appropriately. "
-                                "Numeric values (unit_price, quantity, total_amount, tax_amount) must be numbers (float). "
-                                "If a field is missing, include it with null or empty value."
-                                "Return JSON with this structure exactly: "
-                                "{"
-                                "  'store_name': string | null, "
-                                "  'store_address': string | null, "
-                                "  'receipt_number': string | null, "
-                                "  'receipt_date': 'YYYY-MM-DD' | null, "
-                                "  'due_date': 'YYYY-MM-DD' | null, "
-                                "  'payment_method': string | null, "
-                                "  'category': string, "
-                                "  'currency': string | null, "
-                                "  'items': ["
-                                "    {"
-                                "      'item_name': string, "
-                                "      'quantity': float, "
-                                "      'unit_price': float, "
-                                "      'total_price': float | null"
-                                "    }"
-                                "  ], "
-                                "  'subtotal_amount': float | null, "
-                                "  'tax_amount': float | null, "
-                                "  'discount_amount': float | null, "
-                                "  'total_amount': float, "
-                                "  'suggestion': string "
-                                "}. "
-                                "Also include a short and helpful suggestion on how the user might tag or manage this receipt, "
-                                "for example: 'Consider categorizing this as Groceries for weekly expense tracking.' "
+                            "You are an intelligent receipt analysis assistant.\n"
+                            "Your goal is to extract clean, structured data from an image of a purchase receipt.\n"
+                            "\n"
+                            "OUTPUT RULES\n"
+                            "- Return ONLY valid JSON (no extra text, no Markdown).\n"
+                            "- All date fields MUST be date-only strings in ISO format: \"YYYY-MM-DD\".\n"
+                            "  • If the receipt shows a datetime, return only the date part.\n"
+                            "  • Normalize day-first dates (e.g., \"17/10/2025\") to \"2025-10-17\".\n"
+                            "  • Convert month names (e.g., \"Oct 17, 2025\") to \"2025-10-17\".\n"
+                            "  • If a date is missing or ambiguous, use null.\n"
+                            "- Every string must be trimmed and reasonably capitalized (title case for names).\n"
+                            "- Numeric values (unit_price, quantity, subtotal_amount, tax_amount, discount_amount, total_amount) must be numbers (float).\n"
+                            "- If a field is missing, include it with null (or an empty array for items).\n"
+                            "\n"
+                            "RESPONSE SHAPE (exact keys):\n"
+                            "{\n"
+                            "  \"store_name\": string | null,\n"
+                            "  \"store_address\": string | null,\n"
+                            "  \"receipt_number\": string | null,\n"
+                            "  \"receipt_date\": \"YYYY-MM-DD\" | null,\n"
+                            "  \"due_date\": \"YYYY-MM-DD\" | null,\n"
+                            "  \"payment_method\": string | null,\n"
+                            "  \"category\": string,\n"
+                            "  \"currency\": string | null,\n"
+                            "  \"items\": [\n"
+                            "    {\n"
+                            "      \"item_name\": string,\n"
+                            "      \"quantity\": float,\n"
+                            "      \"unit_price\": float,\n"
+                            "      \"total_price\": float | null\n"
+                            "    }\n"
+                            "  ],\n"
+                            "  \"subtotal_amount\": float | null,\n"
+                            "  \"tax_amount\": float | null,\n"
+                            "  \"discount_amount\": float | null,\n"
+                            "  \"total_amount\": float,\n"
+                            "  \"suggestion\": string\n"
+                            "}\n"
+                            "\n"
+                            "Also include a short, helpful suggestion for how the user might tag or manage this receipt "
+                            "(e.g., \"Consider categorizing this as Groceries for weekly expense tracking.\")."
                         ),
                     },
                     {
                         "role": "user",
                         "content": [
-                            {
-                                "type": "text",
-                                "text": "Extract and format this receipt as JSON only.",
-                            },
+                            {"type": "text", "text": "Extract and format this receipt as JSON only."},
                             {
                                 "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{b64_image}"
-                                },
+                                "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"},
                             },
                         ],
                     },
                 ],
                 response_format={"type": "json_object"},
+                temperature=0,
             )
 
             content = response.choices[0].message.content

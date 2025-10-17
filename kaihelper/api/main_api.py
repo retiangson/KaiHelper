@@ -8,6 +8,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except Exception:
+    pass
+
 # 1) Stage prefix ONLY in root_path (e.g., set STAGE_BASE=/Prod in Lambda)
 STAGE_BASE = os.getenv("STAGE_BASE", "").rstrip("/")  # "" locally, "/Prod" in prod
 

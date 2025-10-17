@@ -44,7 +44,14 @@ Resources:
       StageName: !Ref StageName
       # Optional: enable CORS at the gateway layer (adjust as needed)
       # Cors: "'*'"
-
+      BinaryMediaTypes:
+        - "*/*"            # or list specific types
+        # - multipart/form-data
+        # - image/jpeg
+        # - image/png
+        # - image/webp
+        # - image/gif
+        
   KaiHelperFunction:
     Type: AWS::Serverless::Function
     Properties:
