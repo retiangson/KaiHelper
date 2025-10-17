@@ -14,7 +14,7 @@ app = FastAPI(
     version="1.0",
     description="Grocery Budgeting App Backend",
     docs_url="/docs",
-    openapi_url="/api/openapi.json",
+    openapi_url="/Prod/api/openapi.json",
     redoc_url="/redoc",
     # DO NOT set root_path; Mangum supplies /Prod at runtime
 )
