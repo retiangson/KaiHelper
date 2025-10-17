@@ -42,7 +42,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref StageName
-      # Optional: enable CORS at the gateway layer
+      # Optional: enable CORS at the gateway layer (adjust as needed)
       # Cors: "'*'"
 
   KaiHelperFunction:
@@ -74,11 +74,26 @@ Resources:
           OPENAI_API_KEY: !Ref OpenAIApiKey
           USE_GPT4: "true"
           DB_ENGINE: "mysql"
+          # 👇 Ensures Swagger at /{stage}/docs fetches /{stage}/openapi.json correctly
+          STAGE_BASE: !Sub "/${StageName}"
 
 Outputs:
   ApiUrl:
     Description: API Gateway base URL
     Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/"
+
+  DocsUrl:
+    Description: FastAPI Swagger docs URL
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/docs"
+
+  OpenApiUrl:
+    Description: OpenAPI JSON URL
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/openapi.json"
+
+  HealthUrl:
+    Description: Health check URL
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/health"
+
   FunctionArn:
     Description: Deployed Lambda ARN
     Value: !GetAtt KaiHelperFunction.Arn

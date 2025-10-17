@@ -1,10 +1,10 @@
 """
-FastAPI entry point for KaiHelper (Lambda + API Gateway REST).
+FastAPI entry point for KaiHelper (Lambda + API Gateway).
 """
 import os
 from fastapi import FastAPI
-from mangum import Mangum
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 
 # Optional: load .env locally only
 try:
@@ -16,12 +16,21 @@ try:
 except Exception:
     pass
 
-# ❗ Do NOT set docs_url/openapi_url, and do NOT force root_path.
-# Mangum will set the correct root_path (e.g., "/Prod") from API Gateway.
+# ---- Stage/base path awareness ----
+# We’ll inject STAGE_BASE as "/Prod" (or "/v1") from the SAM template.
+BASE_PATH = os.getenv("STAGE_BASE", "").rstrip("/")
+DOCS_URL = f"{BASE_PATH}/docs" if BASE_PATH else "/docs"
+OPENAPI_URL = f"{BASE_PATH}/openapi.json" if BASE_PATH else "/openapi.json"
+REDOC_URL = f"{BASE_PATH}/redoc" if BASE_PATH else "/redoc"
+
+# Do NOT set root_path; let Mangum handle that via api_gateway_base_path.
 app = FastAPI(
     title="KaiHelper API",
     version="1.0",
     description="Grocery Budgeting App Backend",
+    docs_url=DOCS_URL,
+    redoc_url=REDOC_URL,
+    openapi_url=OPENAPI_URL,
 )
 
 # CORS (tighten origins later)
@@ -33,7 +42,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ------------------ KaiHelper wiring ------------------
+# ---- KaiHelper wiring ----
 from kaihelper.business.services.service_installer import ServiceInstaller
 from kaihelper.domain.domain_installer import DomainInstaller
 from kaihelper.domain.core.database import Base, engine
@@ -59,7 +68,7 @@ def on_startup():
         print(f"[KaiHelper API] Startup error: {e}")
 
 # Routes
-app.include_router(user_routes,     prefix="/api/users",     tags=["Users"])
+app.include_router(user_routes,     prefix="/api/users",      tags=["Users"])
 app.include_router(category_router, prefix="/api/categories", tags=["Categories"])
 app.include_router(grocery_router,  prefix="/api/groceries",  tags=["Groceries"])
 app.include_router(budget_router,   prefix="/api/budgets",    tags=["Budgets"])
@@ -74,5 +83,5 @@ def root():
 def health():
     return {"status": "ok"}
 
-# Lambda adapter (Mangum auto-detects stage/base path)
-handler = Mangum(app)
+# Mangum: tell it the API Gateway base path so it fixes root_path internally.
+handler = Mangum(app, api_gateway_base_path=BASE_PATH or None)
