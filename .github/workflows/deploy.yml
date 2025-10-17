@@ -15,7 +15,7 @@ jobs:
 
       # 2️⃣ Set up Python
       - name: Set up Python
-        uses: actions/setup-python@82c7b36a9f79a9c933bfa4d2e7b8c07a4f406df1 # v5.1.0
+        uses: actions/setup-python@0b2c879b5e5d80b581cfb0ba3d692eeb1a41e8a9 # v5.1.0
         with:
           python-version: "3.10"
 
