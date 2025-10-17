@@ -24,7 +24,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@b1c188bf8cdbc9f1a318cd2e9b54d4db9d8e6a3f # v4.0.2
+        uses: aws-actions/configure-aws-credentials@9a96e7f2e64b0616c35d69243f69f942a5f9fbe3 # v4.0.3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
