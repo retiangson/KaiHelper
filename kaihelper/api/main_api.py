@@ -18,20 +18,30 @@ except Exception:
 
 # ---- Stage/base path awareness ----
 # We’ll inject STAGE_BASE as "/Prod" (or "/v1") from the SAM template.
-BASE_PATH = os.getenv("STAGE_BASE", "").rstrip("/")
-DOCS_URL = f"{BASE_PATH}/docs" if BASE_PATH else "/docs"
-OPENAPI_URL = f"{BASE_PATH}/openapi.json" if BASE_PATH else "/openapi.json"
-REDOC_URL = f"{BASE_PATH}/redoc" if BASE_PATH else "/redoc"
+#BASE_PATH = os.getenv("STAGE_BASE", "").rstrip("/")
+#DOCS_URL = f"{BASE_PATH}/docs" if BASE_PATH else "/docs"
+#OPENAPI_URL = f"{BASE_PATH}/openapi.json" if BASE_PATH else "/openapi.json"
+#REDOC_URL = f"{BASE_PATH}/redoc" if BASE_PATH else "/redoc"
 
 # Do NOT set root_path; let Mangum handle that via api_gateway_base_path.
+#app = FastAPI(
+#    title="KaiHelper API",
+#    version="1.0",
+#    description="Grocery Budgeting App Backend",
+#    docs_url=DOCS_URL,
+#    redoc_url=REDOC_URL,
+#    openapi_url=OPENAPI_URL,
+#)
+
 app = FastAPI(
     title="KaiHelper API",
     version="1.0",
     description="Grocery Budgeting App Backend",
-    docs_url=DOCS_URL,
-    redoc_url=REDOC_URL,
-    openapi_url=OPENAPI_URL,
+    docs_url="/docs",
+    openapi_url="/openapi.json",
+    redoc_url="/redoc",
 )
+
 
 # CORS (tighten origins later)
 app.add_middleware(
@@ -84,4 +94,7 @@ def health():
     return {"status": "ok"}
 
 # Mangum: tell it the API Gateway base path so it fixes root_path internally.
-handler = Mangum(app, api_gateway_base_path=BASE_PATH or None)
+#handler = Mangum(app, api_gateway_base_path=BASE_PATH or None)
+
+STAGE_BASE = os.getenv("STAGE_BASE")  # e.g. "/Prod"
+handler = Mangum(app, api_gateway_base_path=STAGE_BASE)

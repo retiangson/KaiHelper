@@ -74,7 +74,6 @@ Resources:
           OPENAI_API_KEY: !Ref OpenAIApiKey
           USE_GPT4: "true"
           DB_ENGINE: "mysql"
-          # 👇 Ensures Swagger at /{stage}/docs fetches /{stage}/openapi.json correctly
           STAGE_BASE: !Sub "/${StageName}"
 
 Outputs:
