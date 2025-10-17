@@ -19,7 +19,7 @@ except Exception:  # pylint: disable=broad-except
 
 # Stage (e.g., "/Prod") is applied by API Gateway; Mangum will inject it as root_path.
 BASE_PATH = os.getenv("STAGE_BASE", "").rstrip("/")  # e.g. "/Prod" or ""
-API_BASE = "/api"  # docs & schema live under /api/*
+API_BASE = "/url_root"  # docs & schema live under /url_root/*
 
 app = FastAPI(
     title="KaiHelper API",
