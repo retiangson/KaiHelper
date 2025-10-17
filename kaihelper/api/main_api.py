@@ -72,11 +72,12 @@ app.include_router(budget_router, prefix="/api/budgets", tags=["Budgets"])
 app.include_router(expense_router, prefix="/api/expenses", tags=["Expenses"])
 app.include_router(receipt_router, prefix="/api/receipts", tags=["Receipts"])
 
-handler = Mangum(app)
-
 @app.get("/")
 def root():
     return {"message": "Welcome to KaiHelper API!"}
 
-
 print("[KaiHelper API] Initialized. Swagger: /docs")
+
+# Lambda adapter
+handler = Mangum(app)
+
