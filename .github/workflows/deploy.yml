@@ -7,6 +7,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      SAM_CLI_TELEMETRY: "0"   # opt out of SAM telemetry in CI
 
     steps:
       # 1️⃣ Checkout repository
@@ -26,7 +28,7 @@ jobs:
           pip install aws-sam-cli
           pip install -r requirements.txt
 
-      # 4️⃣ Configure AWS credentials (securely pinned SHA)
+      # 4️⃣ Configure AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -38,22 +40,25 @@ jobs:
       - name: Who am I
         run: aws sts get-caller-identity
 
-      # 6️⃣ Build SAM package
-      - name: Build (SAM)
-        run: sam build
+      # 6️⃣ Validate & Build SAM package (use container to match Lambda OS/arch)
+      - name: Validate & Build (SAM)
+        run: |
+          sam validate
+          sam build --no-cached --use-container
 
-      # 7️⃣ Deploy to AWS Lambda using environment parameters
+      # 7️⃣ Deploy to AWS Lambda with parameters from GitHub Secrets
       - name: Deploy (SAM)
         run: |
-          --stack-name kaihelper-stack \
-          --capabilities CAPABILITY_IAM \
-          --resolve-s3 \
-          --no-confirm-changeset \
-          --no-fail-on-empty-changeset \
-          --region ${{ secrets.AWS_REGION }} \
-          --parameter-overrides \
-            ParameterKey=DB_USER,ParameterValue=${{ secrets.DB_USER }} \
-            ParameterKey=DB_PASSWORD,ParameterValue=${{ secrets.DB_PASSWORD }} \
-            ParameterKey=DB_HOST,ParameterValue=${{ secrets.DB_HOST }} \
-            ParameterKey=DB_NAME,ParameterValue=${{ secrets.DB_NAME }} \
-            ParameterKey=OPENAI_API_KEY,ParameterValue=${{ secrets.OPENAI_API_KEY }}
+          sam deploy \
+            --stack-name kaihelper-stack \
+            --capabilities CAPABILITY_IAM \
+            --resolve-s3 \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --region ${{ secrets.AWS_REGION }} \
+            --parameter-overrides \
+              DB_USER='${{ secrets.DB_USER }}' \
+              DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+              DB_HOST='${{ secrets.DB_HOST }}' \
+              DB_NAME='${{ secrets.DB_NAME }}' \
+              OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}'
