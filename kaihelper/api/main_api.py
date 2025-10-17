@@ -1,5 +1,6 @@
 """
 FastAPI entry point for KaiHelper (Lambda + API Gateway).
+Places Swagger/OpenAPI under /api/* so API Gateway forwards them.
 """
 import os
 from fastapi import FastAPI
@@ -13,26 +14,26 @@ try:
     env_path = pathlib.Path(__file__).parents[2] / ".env"
     if env_path.exists():
         load_dotenv(env_path)
-except Exception:
+except Exception:  # pylint: disable=broad-except
     pass
 
-# ---- Stage/base path awareness ----
-# Injected by SAM template as "/Prod" (or "/v1"). Empty when running locally.
-BASE_PATH = os.getenv("STAGE_BASE", "").rstrip("/")  # "" or "/Prod"
+# Stage (e.g., "/Prod") is applied by API Gateway; Mangum will inject it as root_path.
+BASE_PATH = os.getenv("STAGE_BASE", "").rstrip("/")  # e.g. "/Prod" or ""
+API_BASE = "/api"  # docs & schema live under /api/*
 
 app = FastAPI(
     title="KaiHelper API",
     version="1.0",
     description="Grocery Budgeting App Backend",
-    # Make docs stage-aware
-    docs_url=f"{BASE_PATH}/docs" if BASE_PATH else "/docs",
-    openapi_url=f"{BASE_PATH}/openapi.json" if BASE_PATH else "/openapi.json",
-    redoc_url=f"{BASE_PATH}/redoc" if BASE_PATH else "/redoc",
-    # Also set root_path so route generation respects the stage
-    root_path=BASE_PATH or "",
+    # Put docs/schema under /api so API Gateway forwards them,
+    # and DO NOT set root_path here (Mangum handles it).
+    docs_url=f"{API_BASE}/docs",
+    openapi_url=f"{API_BASE}/openapi.json",
+    redoc_url=f"{API_BASE}/redoc",
+    # root_path left unset on purpose to avoid double-prefixing
 )
 
-# CORS (tighten origins in production)
+# CORS (tighten in prod)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -42,16 +43,16 @@ app.add_middleware(
 )
 
 # ---- KaiHelper wiring ----
-from kaihelper.business.services.service_installer import ServiceInstaller
-from kaihelper.domain.domain_installer import DomainInstaller
-from kaihelper.domain.core.database import Base, engine
+from kaihelper.business.services.service_installer import ServiceInstaller  # noqa: E402
+from kaihelper.domain.domain_installer import DomainInstaller  # noqa: E402
+from kaihelper.domain.core.database import Base, engine  # noqa: E402
 
-from kaihelper.api.routes.user_api import router as user_routes
-from kaihelper.api.routes.category_api import router as category_router
-from kaihelper.api.routes.grocery_api import router as grocery_router
-from kaihelper.api.routes.budget_api import router as budget_router
-from kaihelper.api.routes.expense_api import router as expense_router
-from kaihelper.api.routes.receipt_api import router as receipt_router
+from kaihelper.api.routes.user_api import router as user_routes  # noqa: E402
+from kaihelper.api.routes.category_api import router as category_router  # noqa: E402
+from kaihelper.api.routes.grocery_api import router as grocery_router  # noqa: E402
+from kaihelper.api.routes.budget_api import router as budget_router  # noqa: E402
+from kaihelper.api.routes.expense_api import router as expense_router  # noqa: E402
+from kaihelper.api.routes.receipt_api import router as receipt_router  # noqa: E402
 
 domain = DomainInstaller()
 services = ServiceInstaller(domain)
@@ -63,11 +64,10 @@ def on_startup():
     try:
         Base.metadata.create_all(bind=engine)
         print("[KaiHelper API] Database initialized.")
-        print(f"[KaiHelper API] BASE_PATH={BASE_PATH!r}")
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         print(f"[KaiHelper API] Startup error: {e}")
 
-# Routes
+# Routes (already under /api/*)
 app.include_router(user_routes,     prefix="/api/users",      tags=["Users"])
 app.include_router(category_router, prefix="/api/categories", tags=["Categories"])
 app.include_router(grocery_router,  prefix="/api/groceries",  tags=["Groceries"])
@@ -83,5 +83,5 @@ def root():
 def health():
     return {"status": "ok"}
 
-# Mangum adapter — do NOT pass api_gateway_base_path to avoid double-prefixing
+# Let Mangum infer stage root_path from the event (no manual base path)
 handler = Mangum(app)
