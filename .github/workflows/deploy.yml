@@ -45,19 +45,15 @@ jobs:
       # 7️⃣ Deploy to AWS Lambda using environment parameters
       - name: Deploy (SAM)
         run: |
-          sam deploy \
-            --stack-name kaihelper-stack \
-            --capabilities CAPABILITY_IAM \
-            --resolve-s3 \
-            --no-confirm-changeset \
-            --no-fail-on-empty-changeset \
-            --region ${{ secrets.AWS_REGION }} \
-            --parameter-overrides \
-              DB_USER=${{ secrets.DB_USER }} \
-              DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              DB_HOST=${{ secrets.DB_HOST }} \
-              DB_NAME=${{ secrets.DB_NAME }} \
-              OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-              USE_GPT4=true
-              DB_PORT=3306
-              DB_ENGINE=mysql
+          --stack-name kaihelper-stack \
+          --capabilities CAPABILITY_IAM \
+          --resolve-s3 \
+          --no-confirm-changeset \
+          --no-fail-on-empty-changeset \
+          --region ${{ secrets.AWS_REGION }} \
+          --parameter-overrides \
+            ParameterKey=DB_USER,ParameterValue=${{ secrets.DB_USER }} \
+            ParameterKey=DB_PASSWORD,ParameterValue=${{ secrets.DB_PASSWORD }} \
+            ParameterKey=DB_HOST,ParameterValue=${{ secrets.DB_HOST }} \
+            ParameterKey=DB_NAME,ParameterValue=${{ secrets.DB_NAME }} \
+            ParameterKey=OPENAI_API_KEY,ParameterValue=${{ secrets.OPENAI_API_KEY }}
