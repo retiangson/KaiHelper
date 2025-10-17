@@ -58,8 +58,9 @@ jobs:
             --no-fail-on-empty-changeset \
             --region ${{ secrets.AWS_REGION }} \
             --parameter-overrides \
-              ParameterKey=DB_USER,ParameterValue=${{ secrets.DB_USER }} \
-              ParameterKey=DB_PASSWORD,ParameterValue=${{ secrets.DB_PASSWORD }} \
-              ParameterKey=DB_HOST,ParameterValue=${{ secrets.DB_HOST }} \
-              ParameterKey=DB_NAME,ParameterValue=${{ secrets.DB_NAME }} \
-              ParameterKey=OPENAI_API_KEY,ParameterValue=${{ secrets.OPENAI_API_KEY }}
+              ParameterKey=DBHost,ParameterValue=${{ secrets.DB_HOST }} \
+              ParameterKey=DBName,ParameterValue=${{ secrets.DB_NAME }} \
+              ParameterKey=DBUser,ParameterValue=${{ secrets.DB_USER }} \
+              ParameterKey=DBPassword,ParameterValue=${{ secrets.DB_PASSWORD }} \
+              ParameterKey=DBPort,ParameterValue=${{ secrets.DB_PORT }} \
+              ParameterKey=OpenAIApiKey,ParameterValue=${{ secrets.OPENAI_API_KEY }}
