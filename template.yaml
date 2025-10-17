@@ -11,6 +11,11 @@ Globals:
       - x86_64   # fast on GitHub runners; one value only
 
 Parameters:
+  StageName:
+    Type: String
+    Default: Prod
+    AllowedPattern: '^[A-Za-z0-9]+$'
+    Description: API Gateway stage name (e.g., Prod, v1)
   DBHost:
     Type: String
     Description: Database host endpoint (e.g. your RDS endpoint)
@@ -33,6 +38,11 @@ Parameters:
     Description: OpenAI API key for receipt parsing
 
 Resources:
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageName
+
   KaiHelperFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -43,11 +53,13 @@ Resources:
         ApiProxy:
           Type: Api
           Properties:
+            RestApiId: !Ref ApiGateway
             Path: /{proxy+}
             Method: ANY
         ApiRoot:
           Type: Api
           Properties:
+            RestApiId: !Ref ApiGateway
             Path: /
             Method: ANY
       Environment:
@@ -61,8 +73,12 @@ Resources:
           OPENAI_API_KEY: !Ref OpenAIApiKey
           USE_GPT4: "true"
           DB_ENGINE: "mysql"
+          FASTAPI_ROOT_PATH: !Sub "/${StageName}"   # <-- makes /docs and /openapi.json work
 
 Outputs:
   ApiUrl:
     Description: API Gateway base URL
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/"
+  FunctionArn:
+    Description: Deployed Lambda ARN
+    Value: !GetAtt KaiHelperFunction.Arn

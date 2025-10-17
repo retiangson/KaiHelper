@@ -46,7 +46,7 @@ jobs:
       - name: Validate & Build (SAM)
         run: |
           sam validate
-          sam build --no-cached   # no container needed for x86_64 & pure-Python deps
+          sam build --no-cached   # fast path for x86_64 & pure-Python deps
 
       - name: Deploy (SAM)
         run: |
@@ -58,9 +58,17 @@ jobs:
             --no-fail-on-empty-changeset \
             --region ${{ secrets.AWS_REGION }} \
             --parameter-overrides \
+              ParameterKey=StageName,ParameterValue=Prod \
               ParameterKey=DBHost,ParameterValue=${{ secrets.DB_HOST }} \
               ParameterKey=DBName,ParameterValue=${{ secrets.DB_NAME }} \
               ParameterKey=DBUser,ParameterValue=${{ secrets.DB_USER }} \
               ParameterKey=DBPassword,ParameterValue=${{ secrets.DB_PASSWORD }} \
-              ParameterKey=DBPort,ParameterValue=${{ secrets.DB_PORT }} \
               ParameterKey=OpenAIApiKey,ParameterValue=${{ secrets.OPENAI_API_KEY }}
+
+      - name: Show API URL
+        run: |
+          aws cloudformation describe-stacks \
+            --stack-name kaihelper-stack \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
+            --output text \
+            --region ${{ secrets.AWS_REGION }}
