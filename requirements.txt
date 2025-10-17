@@ -4,6 +4,7 @@ bcrypt
 
 # --- Core Framework ---
 fastapi
+mangum
 uvicorn
 sqlalchemy
 pymysql
