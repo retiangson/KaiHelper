@@ -6,11 +6,34 @@ Globals:
   Function:
     Timeout: 30
     MemorySize: 512
+    Runtime: python3.10
+    Architectures:
+      - x86_64
+
+# 👇 Declare all required parameters
+Parameters:
+  DB_HOST:
+    Type: String
+    Description: Database host endpoint (e.g. your RDS endpoint)
+  DB_NAME:
+    Type: String
+    Description: Database name
+  DB_USER:
+    Type: String
+    Description: Database username
+  DB_PASSWORD:
+    Type: String
+    Description: Database password
+    NoEcho: true
+  OPENAI_API_KEY:
+    Type: String
+    Description: OpenAI API key for receipt parsing
 
 Resources:
   KaiHelperFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: kaihelper-function
       CodeUri: .
       Handler: kaihelper.api.main_api.handler
       Runtime: python3.10
@@ -31,3 +54,4 @@ Resources:
           DB_PORT: 3306
           OPENAI_API_KEY: !Ref OPENAI_API_KEY
           USE_GPT4: "true"
+          DB_ENGINE: "mysql"

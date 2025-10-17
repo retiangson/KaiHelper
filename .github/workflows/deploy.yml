@@ -9,20 +9,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.6
 
+      # 2️⃣ Set up Python
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@82c7b36a9f79a9c933bfa4d2e7b8c07a4f406df1 # v5.1.0
         with:
           python-version: "3.10"
 
+      # 3️⃣ Install dependencies (your app + AWS SAM CLI)
       - name: Install deps (project + SAM)
         run: |
           python -m pip install --upgrade pip
           pip install aws-sam-cli
           pip install -r requirements.txt
 
+      # 4️⃣ Configure AWS credentials (securely pinned SHA)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -30,13 +34,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # (Optional) Sanity check credentials
+      # 5️⃣ Optional sanity check to confirm credentials
       - name: Who am I
         run: aws sts get-caller-identity
 
+      # 6️⃣ Build SAM package
       - name: Build (SAM)
         run: sam build
 
+      # 7️⃣ Deploy to AWS Lambda using environment parameters
       - name: Deploy (SAM)
         run: |
           sam deploy \
@@ -45,4 +51,13 @@ jobs:
             --resolve-s3 \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
-            --region ${{ secrets.AWS_REGION }}
+            --region ${{ secrets.AWS_REGION }} \
+            --parameter-overrides \
+              DB_USER=${{ secrets.DB_USER }} \
+              DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              DB_HOST=${{ secrets.DB_HOST }} \
+              DB_NAME=${{ secrets.DB_NAME }} \
+              OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+              USE_GPT4=true
+              DB_PORT=3306
+              DB_ENGINE=mysql
