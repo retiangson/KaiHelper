@@ -93,3 +93,17 @@ class GroceryService(IGroceryService):
             return ResultDTO.fail(result.message if result else "Failed to update grocery")
         except Exception as err:  # pylint: disable=broad-except
             return ResultDTO.fail(f"Error updating grocery: {repr(err)}")
+
+    def get_by_expense_id(self, expense_id: int) -> ResultDTO:
+        """
+        Retrieve a grocery record associated with a specific expense ID.
+
+        Args:
+            expense_id (int): Expense identifier.
+
+        Returns:
+            ResultDTO: Operation result with grocery data or error.
+        """
+        if not expense_id:
+            return ResultDTO.fail("Expense ID is required.")
+        return self._repo.get_by_expense_id(expense_id) 

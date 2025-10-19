@@ -21,3 +21,11 @@ def list_groceries(user_id: int, request: Request):
     if not result.success:
         raise HTTPException(status_code=404, detail=result.message)
     return {"success": True, "message": result.message, "data": result.data}
+
+@router.get("/expense/{expense_id}")
+def get_grocery_by_expense_id(expense_id: int, request: Request):
+    service = request.app.state.services.get_grocery_service()
+    result = service.get_by_expense_id(expense_id)
+    if not result.success:
+        raise HTTPException(status_code=404, detail=result.message)
+    return {"success": True, "message": result.message, "data": result.data}

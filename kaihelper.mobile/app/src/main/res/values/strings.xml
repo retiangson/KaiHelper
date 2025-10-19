@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">KaiHelper</string>
+    <string name="login_title">KaiHelper Login</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="login_button">Login</string>
+    <string name="expense_detail_title">Expense Details</string>
+    <string name="loading_data">Loading...</string>
+    <string name="failed_to_load_groceries">Failed to load groceries</string>
+    <string name="total_amount_format">Total: $%.2f</string>
+    <string name="error_message_format">Error: %1$s</string>
+</resources>

@@ -31,6 +31,7 @@ class GroceryDTO:
     grocery_id: Optional[int] = None
     user_id: int = 0
     category_id: Optional[int] = None
+    expense_id: Optional[int] = None
     item_name: str = ""
     unit_price: float = 0.0
     quantity: float = 1.0
@@ -40,3 +41,4 @@ class GroceryDTO:
     updated_at: Optional[date] = None
     receipt_image: Optional[str] = None
     total_cost: Optional[float] = None
+    local: Optional[bool] = None

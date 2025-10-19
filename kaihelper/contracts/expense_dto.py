@@ -40,7 +40,6 @@ class ExpenseDTO:
     expense_id: int | None = None
     user_id: int = 0
     category_id: int = 0
-    grocery_id: int | None = None
     amount: float = 0.0
     description: str | None = None
     expense_date: date | None = None
@@ -60,3 +59,4 @@ class ExpenseDTO:
     discount_amount: float | None = None
     due_date: date | None = None
     suggestion: str | None = None
+    category_name: str | None = None

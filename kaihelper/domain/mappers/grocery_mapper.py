@@ -29,6 +29,7 @@ class GroceryMapper:
             grocery_id=dto.grocery_id,
             user_id=dto.user_id,
             category_id=dto.category_id,
+            expense_id=dto.expense_id,
             item_name=dto.item_name,
             unit_price=dto.unit_price,
             quantity=dto.quantity,
@@ -54,6 +55,7 @@ class GroceryMapper:
             grocery_id=model.grocery_id,
             user_id=model.user_id,
             category_id=model.category_id,
+            expense_id=model.expense_id,
             item_name=model.item_name,
             unit_price=model.unit_price,
             quantity=model.quantity,
@@ -62,6 +64,7 @@ class GroceryMapper:
             created_at=model.created_at,
             updated_at=model.updated_at,
             total_cost=model.total_cost,
+            local=model.local,
         )
 
     @staticmethod
@@ -80,8 +83,10 @@ class GroceryMapper:
         model.unit_price = dto.unit_price
         model.quantity = dto.quantity
         model.category_id = dto.category_id
+        model.expense_id = dto.expense_id
         model.purchase_date = dto.purchase_date
         model.notes = dto.notes
         model.updated_at = dto.updated_at or datetime.now()
         model.total_cost = dto.total_cost or (dto.unit_price * dto.quantity)
+        model.local = dto.local
         return model

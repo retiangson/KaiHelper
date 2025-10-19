@@ -35,3 +35,8 @@ class IGroceryRepository(ABC):
     def delete(self, grocery_id: int) -> ResultDTO:
         """Delete a grocery record by ID."""
         pass
+
+    @abstractmethod
+    def get_by_expense_id(self, expense_id: int) -> ResultDTO:
+        """Retrieve a grocery record associated with a specific expense ID."""
+        pass
