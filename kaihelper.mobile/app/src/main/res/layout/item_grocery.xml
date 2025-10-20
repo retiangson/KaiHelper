@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_card"
+    android:elevation="4dp"
+    android:layout_margin="8dp">
+
+    <!-- Item Name -->
+    <TextView
+        android:id="@+id/tvGroceryName"
+        android:text="Item Name"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="#FFFFFF"
+        android:shadowColor="#AA000000"
+        android:shadowRadius="2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!-- Quantity, price, total and origin -->
+    <TextView
+        android:id="@+id/tvGroceryDetails"
+        android:text="Qty: 1.0 × $1.49   Total: $1.49 (Local / Māori-owned or Imported)"
+        android:textSize="13sp"
+        android:textColor="#CCCCCC"
+        android:layout_marginTop="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</LinearLayout>

@@ -155,3 +155,23 @@ class GroceryRepository(IGroceryRepository):
                 return ResultDTO.ok("Grocery deleted successfully")
         except SQLAlchemyError as err:
             return ResultDTO.fail(f"Failed to delete grocery: {repr(err)}")
+        
+    def get_by_expense_id(self, expense_id: int) -> ResultDTO:
+        """
+        Retrieve a grocery item linked to a specific expense record.
+
+        Args:
+            expense_id (int): Expense identifier.
+
+        Returns:
+            ResultDTO: Grocery data or error.
+        """
+        try:
+            with SessionLocal() as db_session:
+                groceries = db_session.query(Grocery).filter_by(expense_id=expense_id).all()
+                data = [GroceryMapper.to_dto(grocery) for grocery in groceries]
+                if groceries:
+                    return ResultDTO.ok("Grocery found",data)
+                return ResultDTO.fail("Grocery not found")
+        except SQLAlchemyError as err:
+            return ResultDTO.fail(f"Failed to retrieve grocery by expense ID: {repr(err)}")

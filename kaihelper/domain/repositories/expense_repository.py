@@ -7,6 +7,7 @@ Handles database persistence for Expense entities.
 from sqlalchemy.exc import SQLAlchemyError
 
 # --- First-party imports ---
+from sqlalchemy.orm import joinedload
 from kaihelper.domain.core.database import SessionLocal
 from kaihelper.domain.models.expense import Expense
 from kaihelper.domain.mappers.expense_mapper import ExpenseMapper
@@ -79,7 +80,7 @@ class ExpenseRepository(IExpenseRepository):
         """
         try:
             with SessionLocal() as db_session:
-                expenses = db_session.query(Expense).filter_by(user_id=user_id).all()
+                expenses = db_session.query(Expense).options(joinedload(Expense.category)).filter_by(user_id=user_id).all()
                 data = [ExpenseMapper.to_dto(expense) for expense in expenses]
                 return ResultDTO.ok("Expenses retrieved successfully", data)
         except SQLAlchemyError as err:
@@ -97,7 +98,12 @@ class ExpenseRepository(IExpenseRepository):
         """
         try:
             with SessionLocal() as db_session:
-                expense = db_session.get(Expense, expense_id)
+                expense = db_session.get(
+                    db_session.query(Expense)
+                    .options(joinedload(Expense.category))  # ✅ eager load category
+                    .filter(Expense.expense_id == expense_id)
+                    .first()
+                )
                 if expense:
                     return ResultDTO.ok(
                         "Expense retrieved successfully",
@@ -119,7 +125,7 @@ class ExpenseRepository(IExpenseRepository):
         """
         try:
             with SessionLocal() as db_session:
-                expense = db_session.query(Expense).filter_by(grocery_id=grocery_id).first()
+                expense = db_session.query(Expense).options(joinedload(Expense.category)).filter_by(grocery_id=grocery_id).first()
                 if expense:
                     return ResultDTO.ok(
                         "Expense found",

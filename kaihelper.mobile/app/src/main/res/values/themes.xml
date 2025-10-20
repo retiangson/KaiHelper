@@ -1,0 +1,15 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.KaiHelper" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Dark base background and text colors -->
+        <item name="android:colorBackground">#121212</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:statusBarColor">#000000</item>
+
+        <!-- Primary color tint -->
+        <item name="colorPrimary">#03DAC5</item>
+        <item name="colorPrimaryVariant">#018786</item>
+        <item name="colorOnPrimary">#000000</item>
+        <item name="android:navigationBarColor">#000000</item>
+    </style>
+</resources>

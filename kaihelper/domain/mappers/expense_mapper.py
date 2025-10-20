@@ -12,6 +12,7 @@ from kaihelper.domain.models.expense import Expense
 from kaihelper.contracts.expense_dto import ExpenseDTO
 
 
+
 class ExpenseMapper:
     """Mapper for converting between Expense ORM model and ExpenseDTO."""
 
@@ -29,7 +30,6 @@ class ExpenseMapper:
         return Expense(
             expense_id=dto.expense_id,
             user_id=dto.user_id,
-            grocery_id=dto.grocery_id,
             category_id=dto.category_id,
             amount=dto.amount,
             description=dto.description,
@@ -64,7 +64,6 @@ class ExpenseMapper:
         return ExpenseDTO(
             expense_id=model.expense_id,
             user_id=model.user_id,
-            grocery_id=model.grocery_id,
             category_id=model.category_id,
             amount=model.amount,
             description=model.description,
@@ -83,6 +82,7 @@ class ExpenseMapper:
             discount_amount=model.discount_amount,
             due_date=model.due_date,
             suggestion=model.suggestion,
+            category_name=getattr(model.category, "name", None)
         )
 
     @staticmethod

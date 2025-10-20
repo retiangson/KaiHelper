@@ -27,7 +27,7 @@ from kaihelper.contracts.expense_dto import ExpenseDTO
 from kaihelper.contracts.grocery_dto import GroceryDTO
 from kaihelper.contracts.result_dto import ResultDTO
 from kaihelper.config.settings import settings
-
+from datetime import datetime, date
 
 class ReceiptService(IReceiptService):
     """
@@ -98,19 +98,43 @@ class ReceiptService(IReceiptService):
 
         except Exception as err:  # pylint: disable=broad-except
             return ResultDTO.fail(f"Failed to process receipt: {repr(err)}")
+        
+    # --- Safely parse any date-like fields ---
+    @staticmethod
+    def safe_date(value):
+        """Converts string or datetime to Python date, or None if invalid."""
+        if isinstance(value, date):
+            return value
+        if isinstance(value, str):
+            for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%m/%d/%Y"):
+                try:
+                    return datetime.strptime(value, fmt).date()
+                except ValueError:
+                    continue
+        return None
 
     def _save_receipt_expense(self, user_id: int, category_id: int | None, parsed: dict) -> ResultDTO:
         """Create a single expense record for the entire receipt, including metadata."""
         try:
+            # Use self.safe_date to access static method
+            receipt_date = self.safe_date(parsed.get("receipt_date"))
+            created_at = self.safe_date(parsed.get("created_at")) or datetime.now().date()
+            updated_at = self.safe_date(parsed.get("updated_at")) or datetime.now().date()
+            due_date = self.safe_date(parsed.get("due_date"))
+
+            # Build ExpenseDTO using properly converted date fields
             expense_dto = ExpenseDTO(
                 expense_id=None,
                 user_id=user_id,
-                grocery_id=None,
                 category_id=category_id,
                 amount=float(parsed.get("total_amount", 0.0)),
                 description=parsed.get("suggestion") or "Auto-added from receipt scan",
-                expense_date=datetime.now().date(),
+
+                # expense_date from receipt_date
+                expense_date=receipt_date or datetime.now().date(),
+
                 notes="Auto-added from receipt scan",
+
                 # --- mapped new fields ---
                 store_name=parsed.get("store_name"),
                 store_address=parsed.get("store_address"),
@@ -120,7 +144,12 @@ class ReceiptService(IReceiptService):
                 subtotal_amount=parsed.get("subtotal_amount"),
                 tax_amount=parsed.get("tax_amount"),
                 discount_amount=parsed.get("discount_amount"),
-                due_date=parsed.get("due_date"),
+
+                # fixed — pass date objects, not raw strings
+                due_date=due_date,
+                created_at=created_at,
+                updated_at=updated_at,
+
                 suggestion=parsed.get("suggestion"),
             )
 
@@ -136,7 +165,7 @@ class ReceiptService(IReceiptService):
         self, user_id: int, item: ExtractedItemDTO, category_id: int | None, expense_id: int | None
     ) -> None:
         """Add or update groceries belonging to a receipt."""
-        grocery_dto = self._build_grocery_dto(user_id, item, category_id)
+        grocery_dto = self._build_grocery_dto(user_id, item, category_id, expense_id)
         grocery_result = self._save_grocery(user_id, grocery_dto)
 
         if grocery_result.success:
@@ -172,18 +201,20 @@ class ReceiptService(IReceiptService):
             return None
 
     def _build_grocery_dto(
-        self, user_id: int, item: ExtractedItemDTO, category_id: int | None
+        self, user_id: int, item: ExtractedItemDTO, category_id: int | None, expense_id: int | None = None
     ) -> GroceryDTO:
         """Convert a parsed receipt item to a GroceryDTO."""
         return GroceryDTO(
             user_id=user_id,
             category_id=category_id,
+            expense_id=expense_id,
             item_name=item.item_name,
             unit_price=item.unit_price,
             quantity=item.quantity,
             purchase_date=datetime.now().date(),
             notes="Auto-added from receipt",
             total_cost=round(item.unit_price * item.quantity, 2),
+            local=item.local,
         )
 
     def _save_grocery(self, user_id: int, dto: GroceryDTO) -> ResultDTO:
@@ -215,49 +246,55 @@ class ReceiptService(IReceiptService):
                 model="gpt-4o-mini",
                 messages=[
                     {
-                        "role": "system",
-                        "content": (
-                            "You are an intelligent receipt analysis assistant.\n"
-                            "Your goal is to extract clean, structured data from an image of a purchase receipt.\n"
-                            "\n"
-                            "OUTPUT RULES\n"
-                            "- Return ONLY valid JSON (no extra text, no Markdown).\n"
-                            "- All date fields MUST be date-only strings in ISO format: \"YYYY-MM-DD\".\n"
-                            "  • If the receipt shows a datetime, return only the date part.\n"
-                            "  • Normalize day-first dates (e.g., \"17/10/2025\") to \"2025-10-17\".\n"
-                            "  • Convert month names (e.g., \"Oct 17, 2025\") to \"2025-10-17\".\n"
-                            "  • If a date is missing or ambiguous, use null.\n"
-                            "- Every string must be trimmed and reasonably capitalized (title case for names).\n"
-                            "- Numeric values (unit_price, quantity, subtotal_amount, tax_amount, discount_amount, total_amount) must be numbers (float).\n"
-                            "- If a field is missing, include it with null (or an empty array for items).\n"
-                            "\n"
-                            "RESPONSE SHAPE (exact keys):\n"
-                            "{\n"
-                            "  \"store_name\": string | null,\n"
-                            "  \"store_address\": string | null,\n"
-                            "  \"receipt_number\": string | null,\n"
-                            "  \"receipt_date\": \"YYYY-MM-DD\" | null,\n"
-                            "  \"due_date\": \"YYYY-MM-DD\" | null,\n"
-                            "  \"payment_method\": string | null,\n"
-                            "  \"category\": string,\n"
-                            "  \"currency\": string | null,\n"
-                            "  \"items\": [\n"
-                            "    {\n"
-                            "      \"item_name\": string,\n"
-                            "      \"quantity\": float,\n"
-                            "      \"unit_price\": float,\n"
-                            "      \"total_price\": float | null\n"
-                            "    }\n"
-                            "  ],\n"
-                            "  \"subtotal_amount\": float | null,\n"
-                            "  \"tax_amount\": float | null,\n"
-                            "  \"discount_amount\": float | null,\n"
-                            "  \"total_amount\": float,\n"
-                            "  \"suggestion\": string\n"
-                            "}\n"
-                            "\n"
-                            "Also include a short, helpful suggestion for how the user might tag or manage this receipt "
-                            "(e.g., \"Consider categorizing this as Groceries for weekly expense tracking.\")."
+                    "role": "system",
+                    "content": (
+                        "You are an intelligent receipt analysis assistant.\n"
+                        "Your goal is to extract clean, structured data from an image of a purchase receipt.\n"
+                        "\n"
+                        "OUTPUT RULES\n"
+                        "- Return ONLY valid JSON (no extra text, no Markdown).\n"
+                        "- All date and time fields MUST be date-only strings in ISO format: \"YYYY-MM-DD\".\n"
+                        "  • If the receipt shows a datetime, return only the date part.\n"
+                        "  • Normalize day-first dates (e.g., \"17/10/2025\") to \"2025-10-17\".\n"
+                        "  • Convert month names (e.g., \"Oct 17, 2025\") to \"2025-10-17\".\n"
+                        "  • If a date is missing or ambiguous, use null.\n"
+                        "- Every string must be trimmed and reasonably capitalized (title case for names).\n"
+                        "- Numeric values (unit_price, quantity, subtotal_amount, tax_amount, discount_amount, total_amount) must be numbers (float).\n"
+                        "- If a field is missing, include it with null (or an empty array for items).\n"
+                        "\n"
+                        "RESPONSE SHAPE (exact keys):\n"
+                        "{\n"
+                        "  \"store_name\": string | null,\n"
+                        "  \"store_address\": string | null,\n"
+                        "  \"receipt_number\": string | null,\n"
+                        "  \"receipt_date\": \"YYYY-MM-DD\" | null,\n"
+                        "  \"due_date\": \"YYYY-MM-DD\" | null,\n"
+                        "  \"payment_method\": string | null,\n"
+                        "  \"category\": string,\n"
+                        "  \"currency\": string | null,\n"
+                        "  \"items\": [\n"
+                        "    {\n"
+                        "      \"item_name\": string,\n"
+                        "      \"quantity\": float,\n"
+                        "      \"unit_price\": float,\n"
+                        "      \"total_price\": float | null,\n"
+                        "      \"local\": boolean\n"
+                        "    }\n"
+                        "  ],\n"
+                        "  \"subtotal_amount\": float | null,\n"
+                        "  \"tax_amount\": float | null,\n"
+                        "  \"discount_amount\": float | null,\n"
+                        "  \"total_amount\": float,\n"
+                        "  \"suggestion\": string\n"
+                        "}\n"
+                        "\n"
+                        "INTERPRETATION RULES FOR 'local':\n"
+                        "- Set 'local' to true if the product or brand appears to be New Zealand–made, locally produced, or labeled with 'NZ', 'Kiwi', 'Aotearoa', 'Pams', 'Rolling Meadow', etc.\n"
+                        "- Set 'local' to false for international or imported brands (e.g., Maggi, McCain, Nestlé).\n"
+                        "- If uncertain, default to false.\n"
+                        "\n"
+                        "Also include a short, helpful suggestion for how the user might tag or manage this receipt "
+                        "(e.g., \"Consider categorizing this as Groceries for weekly expense tracking.\")."
                         ),
                     },
                     {

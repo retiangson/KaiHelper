@@ -6,7 +6,7 @@ for receipt tracking and analytics.
 
 # --- Third-party imports ---
 from sqlalchemy import Column, Integer, Float, String, Date, ForeignKey, DateTime
-
+from sqlalchemy.orm import relationship
 # --- First-party imports ---
 from kaihelper.domain.core.database import Base
 
@@ -48,7 +48,6 @@ class Expense(Base):
     expense_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     category_id = Column(Integer, ForeignKey("categories.category_id"), nullable=False)
-    grocery_id = Column(Integer, ForeignKey("groceries.grocery_id"), nullable=True)
     amount = Column(Float, nullable=False)
     description = Column(String(255), nullable=True)
     expense_date = Column(Date, nullable=False)
@@ -68,3 +67,7 @@ class Expense(Base):
     discount_amount = Column(Float, nullable=True)
     due_date = Column(Date, nullable=True)
     suggestion = Column(String(255), nullable=True)
+
+    # --- Relationships ---
+    category = relationship("Category", back_populates="expenses", lazy="joined")
+    groceries = relationship("Grocery", back_populates="expense", lazy="joined")

@@ -26,6 +26,7 @@ class ExtractedItemDTO(BaseModel):
     unit_price: float = Field(..., description="Price per unit or item")
     category: Optional[str] = Field("Uncategorized", description="Optional item category")
     total_price: Optional[float] = Field(None, description="Total = quantity × unit_price")
+    local: Optional[bool] = Field(False, description="Whether the item is local or imported")
 
 
 class ReceiptUploadResponseDTO(BaseModel):
