@@ -7,7 +7,7 @@ Implements business logic for Expense operations with budget synchronization.
 from datetime import date
 
 # --- First-party imports ---
-from kaihelper.business.interfaces.iexpense_service import IExpenseService
+from kaihelper.business.interfaces.i_expense_service import IExpenseService
 from kaihelper.domain.repositories.expense_repository import ExpenseRepository
 from kaihelper.domain.repositories.budget_repository import BudgetRepository
 from kaihelper.contracts.expense_dto import ExpenseDTO

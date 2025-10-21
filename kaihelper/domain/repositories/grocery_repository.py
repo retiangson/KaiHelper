@@ -12,7 +12,7 @@ from kaihelper.domain.models.grocery import Grocery
 from kaihelper.domain.mappers.grocery_mapper import GroceryMapper
 from kaihelper.contracts.grocery_dto import GroceryDTO
 from kaihelper.contracts.result_dto import ResultDTO
-from kaihelper.domain.interfaces.igrocery_repository import IGroceryRepository
+from kaihelper.domain.interfaces.i_grocery_repository import IGroceryRepository
 
 
 class GroceryRepository(IGroceryRepository):
@@ -175,3 +175,26 @@ class GroceryRepository(IGroceryRepository):
                 return ResultDTO.fail("Grocery not found")
         except SQLAlchemyError as err:
             return ResultDTO.fail(f"Failed to retrieve grocery by expense ID: {repr(err)}")
+        
+    def get_by_id(self, grocery_id: int) -> ResultDTO:
+        """
+        Retrieve a grocery record by its ID.
+
+        Args:
+            grocery_id (int): Grocery identifier.
+
+        Returns:
+            ResultDTO: Grocery record or not found message.
+        """
+        try:
+            with SessionLocal() as db_session:
+                grocery = db_session.get(Grocery, grocery_id)
+                if grocery:
+                    return ResultDTO.ok(
+                        "Grocery retrieved successfully",
+                        GroceryMapper.to_dto(grocery),
+                    )
+                return ResultDTO.fail("Grocery not found")
+        except SQLAlchemyError as err:
+            return ResultDTO.fail(f"Failed to retrieve grocery: {repr(err)}")
+    

@@ -30,3 +30,18 @@ class IGroceryService(ABC):
     def get_by_expense_id(self, expense_id: int) -> ResultDTO:
         """Retrieve a grocery record associated with a specific expense ID."""
         pass
+
+    @abstractmethod
+    def delete(self, grocery_id: int) -> ResultDTO:
+        """Delete a grocery record by ID."""
+        pass
+    
+    @abstractmethod
+    def update(self, dto: GroceryDTO) -> ResultDTO:
+        """Update an existing grocery record."""
+        pass
+
+    @abstractmethod
+    def get_grocery_by_id(self, grocery_id: int) -> ResultDTO:
+        """Retrieve a grocery record by its unique identifier."""
+        pass

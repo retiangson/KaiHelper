@@ -12,18 +12,18 @@ from kaihelper.domain.domain_installer import DomainInstaller
 
 # --- Service Interfaces ---
 from kaihelper.business.interfaces.i_user_service import IUserService
-from kaihelper.business.interfaces.icategory_service import ICategoryService
-from kaihelper.business.interfaces.igrocery_service import IGroceryService
-from kaihelper.business.interfaces.ibudget_service import IBudgetService
-from kaihelper.business.interfaces.iexpense_service import IExpenseService
+from kaihelper.business.interfaces.i_category_service import ICategoryService
+from kaihelper.business.interfaces.i_grocery_service import IGroceryService
+from kaihelper.business.interfaces.i_budget_service import IBudgetService
+from kaihelper.business.interfaces.i_expense_service import IExpenseService
 from kaihelper.business.interfaces.i_receipt_service import IReceiptService
 
 # --- Repository Interfaces ---
 from kaihelper.domain.interfaces.i_user_repository import IUserRepository
-from kaihelper.domain.interfaces.icategory_repository import ICategoryRepository
-from kaihelper.domain.interfaces.igrocery_repository import IGroceryRepository
-from kaihelper.domain.interfaces.ibudget_repository import IBudgetRepository
-from kaihelper.domain.interfaces.iexpense_repository import IExpenseRepository
+from kaihelper.domain.interfaces.i_category_repository import ICategoryRepository
+from kaihelper.domain.interfaces.i_grocery_repository import IGroceryRepository
+from kaihelper.domain.interfaces.i_budget_repository import IBudgetRepository
+from kaihelper.domain.interfaces.i_expense_repository import IExpenseRepository
 
 
 class ServiceInstaller:

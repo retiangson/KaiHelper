@@ -5,7 +5,7 @@ Defines data structures for receipt extraction and upload responses.
 
 # --- Standard library imports ---
 from typing import List, Optional
-
+from datetime import date
 # --- Third-party imports ---
 from pydantic import BaseModel, Field
 
@@ -26,6 +26,7 @@ class ExtractedItemDTO(BaseModel):
     unit_price: float = Field(..., description="Price per unit or item")
     category: Optional[str] = Field("Uncategorized", description="Optional item category")
     total_price: Optional[float] = Field(None, description="Total = quantity × unit_price")
+    purchase_date: Optional[date] = Field(None, description="Date of purchase for the item")
     local: Optional[bool] = Field(False, description="Whether the item is local or imported")
 
 

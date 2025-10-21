@@ -13,7 +13,7 @@ from kaihelper.domain.models.expense import Expense
 from kaihelper.domain.mappers.expense_mapper import ExpenseMapper
 from kaihelper.contracts.expense_dto import ExpenseDTO
 from kaihelper.contracts.result_dto import ResultDTO
-from kaihelper.domain.interfaces.iexpense_repository import IExpenseRepository
+from kaihelper.domain.interfaces.i_expense_repository import IExpenseRepository
 
 
 class ExpenseRepository(IExpenseRepository):

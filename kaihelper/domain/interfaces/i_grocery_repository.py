@@ -40,3 +40,8 @@ class IGroceryRepository(ABC):
     def get_by_expense_id(self, expense_id: int) -> ResultDTO:
         """Retrieve a grocery record associated with a specific expense ID."""
         pass
+
+    @abstractmethod
+    def get_by_id(self, grocery_id: int) -> ResultDTO:
+        """Retrieve a grocery record by its grocery ID."""
+        pass

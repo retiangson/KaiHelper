@@ -7,7 +7,7 @@ Implements business logic for Budget operations.
 from datetime import date
 
 # --- First-party imports ---
-from kaihelper.business.interfaces.ibudget_service import IBudgetService
+from kaihelper.business.interfaces.i_budget_service import IBudgetService
 from kaihelper.domain.repositories.budget_repository import BudgetRepository
 from kaihelper.contracts.budget_dto import BudgetDTO
 from kaihelper.contracts.result_dto import ResultDTO

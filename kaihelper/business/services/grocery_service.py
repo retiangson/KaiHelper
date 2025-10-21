@@ -4,7 +4,7 @@ Implements business logic for Grocery operations.
 """
 
 # --- First-party imports ---
-from kaihelper.business.interfaces.igrocery_service import IGroceryService
+from kaihelper.business.interfaces.i_grocery_service import IGroceryService
 from kaihelper.domain.repositories.grocery_repository import GroceryRepository
 from kaihelper.contracts.grocery_dto import GroceryDTO
 from kaihelper.contracts.result_dto import ResultDTO
@@ -107,3 +107,56 @@ class GroceryService(IGroceryService):
         if not expense_id:
             return ResultDTO.fail("Expense ID is required.")
         return self._repo.get_by_expense_id(expense_id) 
+    
+    def delete(self, grocery_id: int) -> ResultDTO:
+        """
+        Delete a grocery record by its ID.
+
+        Args:
+            grocery_id (int): Grocery identifier.
+
+        Returns:
+            ResultDTO: Operation result.
+        """
+        if not grocery_id:
+            return ResultDTO.fail("Grocery ID is required for deletion.")
+        return self._repo.delete(grocery_id)
+    
+    def update(self, dto: GroceryDTO) -> ResultDTO:
+        """
+        Update an existing grocery record after validating the input.
+
+        Args:
+            dto (GroceryDTO): Updated grocery data transfer object.
+
+        Returns:
+            ResultDTO: Operation result.
+        """
+        try:
+            if not dto.grocery_id:
+                return ResultDTO.fail("Grocery ID is required for update.")
+            if dto.unit_price <= 0 or dto.quantity <= 0:
+                return ResultDTO.fail("Invalid grocery details for update.")
+
+            result = self._repo.update(dto)
+            if result and result.success:
+                return ResultDTO.ok("Grocery updated successfully", result.data)
+            return ResultDTO.fail(result.message if result else "Failed to update grocery")
+        except Exception as err:  # pylint: disable=broad-except
+            return ResultDTO.fail(f"Error updating grocery: {repr(err)}")
+        
+    def get_grocery_by_id(self, grocery_id: int) -> ResultDTO:
+        """
+        Retrieve a grocery record by its ID.
+
+        Args:
+            grocery_id (int): Grocery identifier.
+
+        Returns:
+            ResultDTO: Operation result with grocery data or error.
+        """
+        if not grocery_id:
+            return ResultDTO.fail("Grocery ID is required.")
+        return self._repo.get_by_id(grocery_id)
+    
+    
