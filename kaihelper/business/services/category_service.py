@@ -4,7 +4,7 @@ Handles category business logic.
 """
 
 # --- First-party imports ---
-from kaihelper.business.interfaces.icategory_service import ICategoryService
+from kaihelper.business.interfaces.i_category_service import ICategoryService
 from kaihelper.domain.repositories.category_repository import CategoryRepository
 from kaihelper.contracts.result_dto import ResultDTO
 from kaihelper.contracts.category_dto import CategoryDTO

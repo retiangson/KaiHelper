@@ -14,10 +14,10 @@ from kaihelper.domain.repositories.budget_repository import BudgetRepository
 from kaihelper.domain.repositories.expense_repository import ExpenseRepository
 
 # New repository interfaces
-from kaihelper.domain.interfaces.icategory_repository import ICategoryRepository
-from kaihelper.domain.interfaces.igrocery_repository import IGroceryRepository
-from kaihelper.domain.interfaces.ibudget_repository import IBudgetRepository
-from kaihelper.domain.interfaces.iexpense_repository import IExpenseRepository
+from kaihelper.domain.interfaces.i_category_repository import ICategoryRepository
+from kaihelper.domain.interfaces.i_grocery_repository import IGroceryRepository
+from kaihelper.domain.interfaces.i_budget_repository import IBudgetRepository
+from kaihelper.domain.interfaces.i_expense_repository import IExpenseRepository
 
 
 class DomainInstaller:

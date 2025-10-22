@@ -1,37 +1,30 @@
 package nz.yoobee.kaihelper.ui.dashboard
 
+import android.animation.ObjectAnimator
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import nz.yoobee.kaihelper.R
 import nz.yoobee.kaihelper.models.GroceryDTO
-import java.text.NumberFormat
-import java.util.*
+import kotlin.math.abs
 
-/**
- * Adapter for displaying grocery items inside ExpenseDetailActivity.
- * Each item represents a grocery from a specific expense.
- */
 class GroceryAdapter(
-    private var groceries: List<GroceryDTO>
+    private var groceries: MutableList<GroceryDTO>,
+    private val onEdit: (GroceryDTO) -> Unit,
+    private val onDelete: (GroceryDTO) -> Unit
 ) : RecyclerView.Adapter<GroceryAdapter.ViewHolder>() {
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val name: TextView = itemView.findViewById(R.id.tvGroceryName)
-        private val details: TextView = itemView.findViewById(R.id.tvGroceryDetails)
-
-        fun bind(item: GroceryDTO) {
-            name.text = item.item_name.ifEmpty { "Unnamed item" }
-
-            val currency = NumberFormat.getCurrencyInstance(Locale("en", "NZ"))
-            val total = item.total_cost ?: (item.unit_price * item.quantity)
-            val origin = if (item.local == true) "Local / Māori-owned" else "Imported"
-
-            details.text = "($origin) Qty: ${item.quantity} × ${currency.format(item.unit_price)}   " +
-                    "Total: ${currency.format(total)}"
-        }
+    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val layoutForeground: LinearLayout = view.findViewById(R.id.layoutForeground)
+        val btnEdit: androidx.appcompat.widget.AppCompatImageButton = view.findViewById(R.id.btnEdit)
+        val btnDelete: androidx.appcompat.widget.AppCompatImageButton = view.findViewById(R.id.btnDelete)
+        val tvItem: TextView = view.findViewById(R.id.tvGroceryName)
+        val tvCost: TextView = view.findViewById(R.id.tvGroceryDetails)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -40,14 +33,103 @@ class GroceryAdapter(
         return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(groceries[position])
-    }
-
     override fun getItemCount() = groceries.size
 
-    fun updateData(newGroceries: List<GroceryDTO>) {
-        groceries = newGroceries
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val grocery = groceries[position]
+        holder.tvItem.text = grocery.item_name
+        holder.tvCost.text =
+            "Qty: ${grocery.quantity} × $${grocery.unit_price} = $${grocery.total_cost ?: grocery.unit_price * grocery.quantity}"
+
+        // Reset translation each bind
+        holder.layoutForeground.translationX = 0f
+
+        var startX = 0f
+        var swiping = false
+
+        holder.layoutForeground.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // Stop parent scroll during swipe
+                    (v.parent as? RecyclerView)?.requestDisallowInterceptTouchEvent(true)
+                    startX = event.rawX
+                    swiping = false
+                    true
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    val deltaX = event.rawX - startX
+                    if (abs(deltaX) > 20) swiping = true
+
+                    // ✅ Allow swipe left (reveal) and right (close)
+                    val currentTranslation = holder.layoutForeground.translationX + deltaX
+                    holder.layoutForeground.translationX = currentTranslation.coerceIn(-250f, 0f)
+
+                    // update startX continuously so it follows your finger
+                    startX = event.rawX
+                    true
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (swiping) {
+                        val translation = holder.layoutForeground.translationX
+                        // ✅ Snap open/close halfway
+                        if (translation < -100f) {
+                            animateSlide(holder.layoutForeground, -250f)
+                        } else {
+                            animateSlide(holder.layoutForeground, 0f)
+                        }
+                    }
+                    swiping = false
+                    true
+                }
+
+                else -> false
+            }
+        }
+
+        // ✅ Click events
+        holder.btnEdit.setOnClickListener {
+            animateSlide(holder.layoutForeground, 0f)
+            onEdit(grocery)
+        }
+
+        holder.btnDelete.setOnClickListener {
+            animateSlide(holder.layoutForeground, 0f)
+            onDelete(grocery)
+        }
+    }
+
+    // ✅ Smooth slide animation
+    private fun animateSlide(view: View, targetX: Float) {
+        ObjectAnimator.ofFloat(view, "translationX", targetX).apply {
+            duration = 150   // faster, feels snappier
+            start()
+        }
+    }
+
+    // ✅ Helper methods for data updates
+    fun updateData(list: List<GroceryDTO>) {
+        groceries.clear()
+        groceries.addAll(list)
         notifyDataSetChanged()
     }
+
+    fun updateItem(updated: GroceryDTO) {
+        val index = groceries.indexOfFirst { it.grocery_id == updated.grocery_id }
+        if (index != -1) {
+            groceries[index] = updated
+            notifyItemChanged(index)
+        }
+    }
+
+    fun removeItem(item: GroceryDTO) {
+        val index = groceries.indexOf(item)
+        if (index != -1) {
+            groceries.removeAt(index)
+            notifyItemRemoved(index)
+        }
+    }
+
+    fun getItemAt(position: Int): GroceryDTO = groceries[position]
 }

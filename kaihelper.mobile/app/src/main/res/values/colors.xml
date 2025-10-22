@@ -9,4 +9,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="crop_toolbar_bg">#121212</color>
     <color name="crop_toolbar_text">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
 </resources>

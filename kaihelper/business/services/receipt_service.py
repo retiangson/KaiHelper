@@ -18,9 +18,9 @@ from openai import OpenAI
 
 # --- First-party imports ---
 from kaihelper.business.interfaces.i_receipt_service import IReceiptService
-from kaihelper.business.interfaces.icategory_service import ICategoryService
-from kaihelper.business.interfaces.igrocery_service import IGroceryService
-from kaihelper.business.interfaces.iexpense_service import IExpenseService
+from kaihelper.business.interfaces.i_category_service import ICategoryService
+from kaihelper.business.interfaces.i_grocery_service import IGroceryService
+from kaihelper.business.interfaces.i_expense_service import IExpenseService
 from kaihelper.contracts.receipt_dto import ReceiptUploadResponseDTO, ExtractedItemDTO
 from kaihelper.contracts.category_dto import CategoryDTO
 from kaihelper.contracts.expense_dto import ExpenseDTO
@@ -77,8 +77,9 @@ class ReceiptService(IReceiptService):
                 )
 
             expense_id = getattr(expense_result.data, "expense_id", None)
+            paurchase_date = getattr(expense_result.data, "expense_date", datetime.now().date())
             for item in items:
-                self._process_item(user_id, item, category_id, expense_id)
+                self._process_item(user_id, item, category_id, expense_id, paurchase_date)
 
             elapsed = round((time.time() - start_time) * 1000, 2)
             print(
@@ -162,7 +163,7 @@ class ReceiptService(IReceiptService):
             return ResultDTO.fail(f"Failed to save receipt expense: {repr(err)}")
 
     def _process_item(
-        self, user_id: int, item: ExtractedItemDTO, category_id: int | None, expense_id: int | None
+        self, user_id: int, item: ExtractedItemDTO, category_id: int | None, expense_id: int | None, paurchase_date: date | None = None
     ) -> None:
         """Add or update groceries belonging to a receipt."""
         grocery_dto = self._build_grocery_dto(user_id, item, category_id, expense_id)
@@ -201,7 +202,7 @@ class ReceiptService(IReceiptService):
             return None
 
     def _build_grocery_dto(
-        self, user_id: int, item: ExtractedItemDTO, category_id: int | None, expense_id: int | None = None
+        self, user_id: int, item: ExtractedItemDTO, category_id: int | None, expense_id: int | None = None, paurchase_date: date | None = None
     ) -> GroceryDTO:
         """Convert a parsed receipt item to a GroceryDTO."""
         return GroceryDTO(
@@ -211,7 +212,7 @@ class ReceiptService(IReceiptService):
             item_name=item.item_name,
             unit_price=item.unit_price,
             quantity=item.quantity,
-            purchase_date=datetime.now().date(),
+            purchase_date=paurchase_date or datetime.now().date(),
             notes="Auto-added from receipt",
             total_cost=round(item.unit_price * item.quantity, 2),
             local=item.local,

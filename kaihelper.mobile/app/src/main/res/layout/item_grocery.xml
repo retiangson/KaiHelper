@@ -1,32 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="12dp"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_card"
-    android:elevation="4dp"
-    android:layout_margin="8dp">
+    android:layout_margin="2dp">
 
-    <!-- Item Name -->
-    <TextView
-        android:id="@+id/tvGroceryName"
-        android:text="Item Name"
-        android:textStyle="bold"
-        android:textSize="14sp"
-        android:textColor="#FFFFFF"
-        android:shadowColor="#AA000000"
-        android:shadowRadius="2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <!-- Background: small icon buttons (Edit + Delete) -->
+    <LinearLayout
+        android:id="@+id/layoutActions"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="end|center_vertical"
+        android:orientation="horizontal"
+        android:paddingEnd="0dp"
+        android:background="#1E1E1E">
 
-    <!-- Quantity, price, total and origin -->
-    <TextView
-        android:id="@+id/tvGroceryDetails"
-        android:text="Qty: 1.0 × $1.49   Total: $1.49 (Local / Māori-owned or Imported)"
-        android:textSize="13sp"
-        android:textColor="#CCCCCC"
-        android:layout_marginTop="0dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-</LinearLayout>
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnEdit"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="0dp"
+            android:backgroundTint="#2E7D32"
+            app:srcCompat="@drawable/ic_edit_white"
+            app:tint="#FFFFFF" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:backgroundTint="#C62828"
+            app:srcCompat="@drawable/ic_delete_white"
+            app:tint="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Foreground: slides left to reveal actions -->
+    <LinearLayout
+        android:id="@+id/layoutForeground"
+        android:orientation="vertical"
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_card"
+        android:elevation="4dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:id="@+id/tvGroceryName"
+            android:text="Item Name"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/tvGroceryDetails"
+            android:text="Qty: 1 × $1.50 = $1.50"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+</FrameLayout>
