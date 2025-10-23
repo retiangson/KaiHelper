@@ -10,6 +10,7 @@
     <!-- 💠 Accent Colors (KaiHelper identity) -->
     <color name="teal_200">#03A9F4</color>        <!-- Active highlight -->
     <color name="teal_400">#0288D1</color>        <!-- Hover or secondary accent -->
+    <color name="teal_700">#0077C2</color>        <!-- Darker accent (Material variant) -->
     <color name="accent_success">#4CAF50</color>  <!-- Success (e.g., green check) -->
     <color name="accent_warning">#FFC107</color>  <!-- Warnings / alerts -->
     <color name="accent_error">#F44336</color>    <!-- Errors / failed upload -->
@@ -21,8 +22,12 @@
 
     <!-- 🌫️ Miscellaneous UI elements -->
     <color name="divider_dark">#303030</color>
-    <color name="crop_toolbar_bg">#1E1E1E</color>
+    <color name="crop_toolbar_bg">#000000</color>
     <color name="crop_toolbar_text">#FFFFFF</color>
+
+    <!-- 🖤 Base Black / White colors (added for theme compatibility) -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
 
     <!-- 📊 Chart Colors (optional override for MPAndroidChart) -->
     <color name="chart_grocery">#03A9F4</color>
@@ -31,8 +36,10 @@
     <color name="chart_transport">#FF5722</color>
     <color name="chart_others">#9C27B0</color>
 
+    <!-- 🎨 Material Theme Colors -->
     <color name="colorPrimary">@color/teal_200</color>
-    <color name="colorOnPrimary">@color/text_primary</color>
+    <color name="colorPrimaryVariant">@color/teal_700</color>
+    <color name="colorOnPrimary">@color/white</color>
     <color name="colorSurface">@color/surface_dark</color>
     <color name="colorOnSurface">@color/text_primary</color>
 </resources>

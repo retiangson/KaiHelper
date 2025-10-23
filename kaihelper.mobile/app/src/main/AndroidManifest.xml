@@ -72,5 +72,10 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- ✅ Fixed Cropper Activity theme -->
+        <activity
+            android:name="com.canhub.cropper.CropImageActivity"
+            android:theme="@style/Theme.KaiHelper.Cropper" />
+
     </application>
 </manifest>

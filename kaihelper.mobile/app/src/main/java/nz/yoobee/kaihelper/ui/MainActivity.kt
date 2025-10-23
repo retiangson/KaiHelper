@@ -73,7 +73,9 @@ class MainActivity : AppCompatActivity() {
                             uri = Uri.fromFile(capturedFile),
                             cropImageOptions = CropImageOptions().apply {
                                 fixAspectRatio = false
+                                cropMenuCropButtonTitle = "Done"
                                 guidelines = CropImageView.Guidelines.ON
+                                activityMenuIconColor = ContextCompat.getColor(this@MainActivity, R.color.white)
                             }
                         )
                     )
