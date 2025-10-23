@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from kaihelper.contracts.result_dto import ResultDTO
 from kaihelper.contracts.expense_dto import ExpenseDTO
+from datetime import date
 
 
 class IExpenseService(ABC):
@@ -34,4 +35,9 @@ class IExpenseService(ABC):
     @abstractmethod
     def delete_expense(self, expense_id: int) -> ResultDTO:
         """Delete an expense and restore its amount to the active budget."""
+        pass
+
+    @abstractmethod
+    def check_exist(self, user_id: int, store_name: str, expense_date: date) -> ResultDTO:
+        """Check if an expense exists for a user by store name and expense date."""
         pass

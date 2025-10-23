@@ -127,8 +127,7 @@ class ExpenseDetailActivity : AppCompatActivity() {
                     created_at = createdDate,
                     updated_at = updatedDate
                 )
-                Log.d("API_RESPONSE", "Response body: ${Gson().toJson(grocery)}")
-                Log.d("API_RESPONSE", "Response body: ${Gson().toJson(updated)}")
+
                 groceryService.updateGrocery(updated)
                     .enqueue(object : Callback<ResultDTO<GroceryDTO>> {
                         override fun onResponse(

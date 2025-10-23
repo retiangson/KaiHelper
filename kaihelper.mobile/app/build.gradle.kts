@@ -54,6 +54,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("it.xabaras.android:recyclerview-swipedecorator:1.4")
+    implementation("com.google.android.material:material:1.12.0")
 
     // Recycler / Coordinator / Layout
     implementation("androidx.recyclerview:recyclerview:1.3.2")
@@ -62,6 +63,7 @@ dependencies {
     // Lifecycle / Activity
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
     implementation("androidx.activity:activity-ktx:1.9.3")
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
     // --- Networking ---
     implementation("com.squareup.retrofit2:retrofit:2.11.0")

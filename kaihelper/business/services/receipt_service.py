@@ -154,6 +154,18 @@ class ReceiptService(IReceiptService):
                 suggestion=parsed.get("suggestion"),
             )
 
+            # --- Try to find duplicate expense ---
+            existing = self.expense_service.check_exist(user_id, expense_dto.store_name, expense_dto.expense_date)
+            
+            # --- If duplicate found, update it ---
+            if existing and existing.success and existing.data:
+                existing_exp = existing.data
+                print(f"[ReceiptService] Updating existing expense for {existing} (same date/amount)")
+                expense_dto.expense_id = existing_exp.expense_id
+                expense_dto.notes = f"{existing_exp.notes or ''} | Merged with new receipt data"
+                return self.expense_service.update_expense(expense_dto)
+
+            # --- Otherwise, create a new one ---
             print(
                 f"[ReceiptService] Creating receipt-level expense "
                 f"(Store: {parsed.get('store_name')}, Total: {parsed.get('total_amount')})"
@@ -166,7 +178,7 @@ class ReceiptService(IReceiptService):
         self, user_id: int, item: ExtractedItemDTO, category_id: int | None, expense_id: int | None, paurchase_date: date | None = None
     ) -> None:
         """Add or update groceries belonging to a receipt."""
-        grocery_dto = self._build_grocery_dto(user_id, item, category_id, expense_id)
+        grocery_dto = self._build_grocery_dto(user_id, item, category_id, expense_id, paurchase_date)
         grocery_result = self._save_grocery(user_id, grocery_dto)
 
         if grocery_result.success:

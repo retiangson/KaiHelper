@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -38,8 +37,9 @@ class GroceryAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val grocery = groceries[position]
         holder.tvItem.text = grocery.item_name
+        val origin = if (grocery.local == true) "Local" else "Foreign"
         holder.tvCost.text =
-            "Qty: ${grocery.quantity} × $${grocery.unit_price} = $${grocery.total_cost ?: grocery.unit_price * grocery.quantity}"
+            "(${origin}) Qty: ${grocery.quantity} × $${grocery.unit_price} = $${grocery.total_cost ?: grocery.unit_price * grocery.quantity}"
 
         // Reset translation each bind
         holder.layoutForeground.translationX = 0f

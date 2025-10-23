@@ -99,7 +99,6 @@ class ExpenseMapper:
         """
         model.amount = dto.amount
         model.category_id = dto.category_id
-        model.grocery_id = dto.grocery_id
         model.description = dto.description
         model.expense_date = dto.expense_date
         model.receipt_image = dto.receipt_image

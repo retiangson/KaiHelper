@@ -172,3 +172,20 @@ class ExpenseService(IExpenseService):
             return ResultDTO.ok("Expense deleted and budget restored.", result.data)
         except Exception as err:
             return ResultDTO.fail(f"Failed to delete expense: {repr(err)}")
+        
+    def check_exist(self, user_id: int, store_name: str, expense_date: date) -> ResultDTO:
+        """
+        Check if an expense exists for a user by store name and expense date.
+
+        Args:
+            user_id (int): User identifier.
+            store_name (str): Store name of the expense.
+            expense_date (date): Date of the expense.
+        Returns:
+            ResultDTO: Operation result indicating existence.
+        """
+        try:
+            return self._expense_repo.check_exist(user_id, store_name, expense_date)
+        except Exception as err:
+            return ResultDTO.fail(f"Failed to check expense existence: {repr(err)}")
+        
