@@ -37,6 +37,12 @@ class ExpenseDetailActivity : AppCompatActivity() {
         binding = ActivityExpenseDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // ✅ Navigation bar (back arrow)
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.topAppBar)
+        toolbar?.setNavigationOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
+
         // ✅ Initialize adapter with callback functions
         adapter = GroceryAdapter(
             groceries = mutableListOf(),
@@ -46,7 +52,6 @@ class ExpenseDetailActivity : AppCompatActivity() {
 
         binding.recyclerViewGroceries.layoutManager = LinearLayoutManager(this)
         binding.recyclerViewGroceries.adapter = adapter
-
 
         // ✅ Load data
         val expenseId = intent.getIntExtra("expense_id", -1)
@@ -76,20 +81,6 @@ class ExpenseDetailActivity : AppCompatActivity() {
                 }
             })
     }
-
-    // ✅ Dialog when user swipes an item
-    //private fun showSwipeOptions(grocery: GroceryDTO) {
-    //    val options = arrayOf("Edit", "Delete")
-    //    AlertDialog.Builder(this)
-    //        .setTitle("Choose action for '${grocery.item_name}'")
-    //        .setItems(options) { _, which ->
-    //            when (which) {
-    //                0 -> showEditDialog(grocery)
-    //                1 -> confirmDelete(grocery)
-    //            }
-    //        }
-    //        .show()
-    //}
 
     // ✅ Edit grocery dialog (Double-safe version)
     private fun showEditDialog(grocery: GroceryDTO) {
@@ -127,8 +118,7 @@ class ExpenseDetailActivity : AppCompatActivity() {
                     created_at = createdDate,
                     updated_at = updatedDate
                 )
-                Log.d("API_RESPONSE", "Response body: ${Gson().toJson(grocery)}")
-                Log.d("API_RESPONSE", "Response body: ${Gson().toJson(updated)}")
+
                 groceryService.updateGrocery(updated)
                     .enqueue(object : Callback<ResultDTO<GroceryDTO>> {
                         override fun onResponse(

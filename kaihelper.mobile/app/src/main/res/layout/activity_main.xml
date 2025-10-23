@@ -7,43 +7,63 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#121212"
-    android:fitsSystemWindows="true"
     tools:context=".ui.MainActivity">
 
-    <!-- ✅ Main container -->
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <!-- ✅ App bar with toolbar + tabs -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:background="#1E1E1E"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
 
-        <!-- ✅ Header -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topAppBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#1E1E1E"
+            app:menu="@menu/top_app_bar_menu"
+            app:titleTextColor="#FFFFFF"
+            app:navigationIconTint="#FFFFFF"
+            app:itemIconTint="#FFFFFF">
+
+            <TextView
+                android:id="@+id/tvToolbarTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:text="EXPENSES"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="16dp" />
+        </com.google.android.material.appbar.MaterialToolbar>
+
+        <!-- ✅ Tabs below toolbar -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabFilter"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="#1E1E1E"
+            app:tabIndicatorColor="#03A9F4"
+            app:tabSelectedTextColor="#03A9F4"
+            app:tabTextColor="#AAAAAA" />
+
+        <!-- ✅ Restored Monthly Budget header -->
         <LinearLayout
             android:id="@+id/layoutHeader"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#1E1E1E"
             android:orientation="vertical"
             android:padding="12dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            android:background="#1E1E1E">
 
-            <!-- Username -->
-            <TextView
-                android:id="@+id/tvUserName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:text="Welcome, User"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <!-- Budget title and total on one line -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp">
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/tvBudgetTitle"
@@ -53,10 +73,12 @@
                     android:textColor="#AAAAAA"
                     android:textSize="14sp"
                     android:textStyle="bold" />
+
                 <View
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
+
                 <TextView
                     android:id="@+id/tvTotalBudget"
                     android:layout_width="wrap_content"
@@ -64,40 +86,54 @@
                     android:text="$0.00"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:layout_marginEnd="8dp" />
+                    android:textSize="18sp" />
             </LinearLayout>
         </LinearLayout>
+        <TextView
+            android:id="@+id/tvCoverage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Month"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <!-- ✅ RecyclerView inside SwipeRefresh -->
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipeRefresh"
-            android:layout_width="0dp"
+    <!-- ✅ Main content coordinates with AppBar -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <!-- fragment container -->
+        <FrameLayout
+            android:id="@+id/pageContainer"
+            android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@id/layoutHeader"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/layoutFooter"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvExpenses"
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/fragmentContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="8dp"
-                android:clipToPadding="false"
-                android:scrollbars="vertical" />
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                tools:name="nz.yoobee.kaihelper.ui.fragments.OverviewFragment" />
+        </FrameLayout>
 
-        <!-- ✅ Footer (Total Spent) -->
+        <!-- footer totals -->
         <LinearLayout
             android:id="@+id/layoutFooter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="#1E1E1E"
-            android:padding="16dp"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            app:layout_constraintBottom_toTopOf="@+id/bottomActionBar"
+            android:background="#1E1E1E"
+            android:padding="12dp"
+            app:layout_constraintBottom_toTopOf="@id/bottomActionBar"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
@@ -122,133 +158,17 @@
                 android:text="$0.00"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
-                android:textSize="18sp"
-                android:layout_marginEnd="8dp" />
+                android:textSize="18sp" />
         </LinearLayout>
 
-        <!-- ✅ Bottom Action Icon Bar -->
-        <LinearLayout
+        <!-- ✅ bottom nav pinned to screen bottom -->
+        <include
             android:id="@+id/bottomActionBar"
+            layout="@layout/layout_bottom_bar"
             android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:background="#1E1E1E"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:paddingHorizontal="16dp"
-            android:elevation="12dp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <!-- Funding -->
-            <LinearLayout
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1">
-                <ImageView
-                    android:id="@+id/iconFunding"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_wallet"
-                    app:tint="#03A9F4" />
-                <TextView
-                    android:text="Funding"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="12sp"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- Transaction -->
-            <LinearLayout
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1">
-                <ImageView
-                    android:id="@+id/iconTransaction"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_transaction"
-                    app:tint="#03A9F4" />
-                <TextView
-                    android:text="Transaction"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="12sp"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- Camera (center, larger) -->
-            <LinearLayout
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1">
-                <ImageView
-                    android:id="@+id/iconCamera"
-                    android:layout_width="58dp"
-                    android:layout_height="58dp"
-                    android:src="@drawable/ic_camera"
-                    app:tint="#03A9F4" />
-                <TextView
-                    android:text="Upload"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="12sp"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- Insight -->
-            <LinearLayout
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1">
-                <ImageView
-                    android:id="@+id/iconInsight"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_insight"
-                    app:tint="#03A9F4" />
-                <TextView
-                    android:text="Insight"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="12sp"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-
-            <!-- Overview -->
-            <LinearLayout
-                android:orientation="vertical"
-                android:gravity="center"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1">
-                <ImageView
-                    android:id="@+id/iconOverview"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:src="@drawable/ic_overview"
-                    app:tint="#03A9F4" />
-                <TextView
-                    android:text="Overview"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="12sp"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginTop="4dp" />
-            </LinearLayout>
-        </LinearLayout>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

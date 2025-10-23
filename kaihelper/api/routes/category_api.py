@@ -20,4 +20,8 @@ def list_categories(request: Request):
     result = service.list_categories()
     if not result.success:
         raise HTTPException(status_code=404, detail=result.message)
+    # ✅ If result.data is another ResultDTO, unwrap it here
+    inner = result.data
+    if isinstance(inner, dict) and "data" in inner:
+        return {"success": True, "message": inner.get("message", result.message), "data": inner["data"]}
     return {"success": True, "message": result.message, "data": result.data}

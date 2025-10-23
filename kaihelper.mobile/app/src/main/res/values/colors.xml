@@ -1,13 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="crop_toolbar_bg">#121212</color>
+    <!-- 🌙 Core Dark Theme Palette -->
+    <color name="background_dark">#121212</color>
+    <color name="surface_dark">#1E1E1E</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#AAAAAA</color>
+    <color name="text_muted">#888888</color>
+
+    <!-- 💠 Accent Colors (KaiHelper identity) -->
+    <color name="teal_200">#03A9F4</color>        <!-- Active highlight -->
+    <color name="teal_400">#0288D1</color>        <!-- Hover or secondary accent -->
+    <color name="teal_700">#0077C2</color>        <!-- Darker accent (Material variant) -->
+    <color name="accent_success">#4CAF50</color>  <!-- Success (e.g., green check) -->
+    <color name="accent_warning">#FFC107</color>  <!-- Warnings / alerts -->
+    <color name="accent_error">#F44336</color>    <!-- Errors / failed upload -->
+
+    <!-- 🩶 Inactive / Disabled States -->
+    <color name="gray_400">#888888</color>
+    <color name="gray_600">#555555</color>
+    <color name="gray_800">#2C2C2C</color>
+
+    <!-- 🌫️ Miscellaneous UI elements -->
+    <color name="divider_dark">#303030</color>
+    <color name="crop_toolbar_bg">#000000</color>
     <color name="crop_toolbar_text">#FFFFFF</color>
-    <color name="transparent">#00000000</color>
+
+    <!-- 🖤 Base Black / White colors (added for theme compatibility) -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- 📊 Chart Colors (optional override for MPAndroidChart) -->
+    <color name="chart_grocery">#03A9F4</color>
+    <color name="chart_dining">#8BC34A</color>
+    <color name="chart_utilities">#FFC107</color>
+    <color name="chart_transport">#FF5722</color>
+    <color name="chart_others">#9C27B0</color>
+
+    <!-- 🎨 Material Theme Colors -->
+    <color name="colorPrimary">@color/teal_200</color>
+    <color name="colorPrimaryVariant">@color/teal_700</color>
+    <color name="colorOnPrimary">@color/white</color>
+    <color name="colorSurface">@color/surface_dark</color>
+    <color name="colorOnSurface">@color/text_primary</color>
 </resources>

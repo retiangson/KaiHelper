@@ -14,6 +14,7 @@ from kaihelper.domain.mappers.expense_mapper import ExpenseMapper
 from kaihelper.contracts.expense_dto import ExpenseDTO
 from kaihelper.contracts.result_dto import ResultDTO
 from kaihelper.domain.interfaces.i_expense_repository import IExpenseRepository
+from datetime import date
 
 
 class ExpenseRepository(IExpenseRepository):
@@ -87,27 +88,19 @@ class ExpenseRepository(IExpenseRepository):
             return ResultDTO.fail(f"Failed to retrieve expenses: {repr(err)}")
 
     def get_by_id(self, expense_id: int) -> ResultDTO:
-        """
-        Retrieve an expense by its unique ID.
-
-        Args:
-            expense_id (int): Expense identifier.
-
-        Returns:
-            ResultDTO: Expense data or not found message.
-        """
+        """Retrieve an expense by ID, with category eager loading."""
         try:
             with SessionLocal() as db_session:
-                expense = db_session.get(
+                expense = (
                     db_session.query(Expense)
-                    .options(joinedload(Expense.category))  # ✅ eager load category
+                    .options(joinedload(Expense.category))
                     .filter(Expense.expense_id == expense_id)
                     .first()
                 )
                 if expense:
                     return ResultDTO.ok(
                         "Expense retrieved successfully",
-                        ExpenseMapper.to_dto(expense),
+                        ExpenseMapper.to_dto(expense)
                     )
                 return ResultDTO.fail("Expense not found")
         except SQLAlchemyError as err:
@@ -156,3 +149,28 @@ class ExpenseRepository(IExpenseRepository):
                 return ResultDTO.ok("Expense deleted successfully")
         except SQLAlchemyError as err:
             return ResultDTO.fail(f"Failed to delete expense: {repr(err)}")
+    
+    def check_exist(self, user_id: int, store_name: str, expense_date: date) -> ResultDTO:
+        """
+        Check if an expense exists for a user by store name and expense date.
+
+        Args:
+            user_id (int): User identifier.
+            store_name (str): Store name of the expense.
+            expense_date (date): Date of the expense.
+        Returns:
+            ResultDTO: Operation result indicating existence.
+        """
+        try:
+            with SessionLocal() as db_session:
+                expense = (
+                    db_session.query(Expense)
+                    .filter_by(user_id=user_id, store_name=store_name, expense_date=expense_date)
+                    .first()
+                )
+                if expense:
+                    return ResultDTO.ok("Expense exists", ExpenseMapper.to_dto(expense))
+                return ResultDTO.fail("Expense does not exist")
+        except SQLAlchemyError as err:
+            return ResultDTO.fail(f"Failed to check expense existence: {repr(err)}")
+        

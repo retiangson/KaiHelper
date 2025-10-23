@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:orientation="horizontal"
+    android:background="#1E1E1E"
+    android:gravity="center">
+
+    <!-- 🟡 Funding -->
+    <LinearLayout
+        android:id="@+id/navFunding"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackgroundBorderless">
+
+        <ImageView
+            android:id="@+id/iconFunding"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_wallet"
+            app:tint="#888888"
+            android:contentDescription="Funding" />
+
+        <TextView
+            android:id="@+id/labelFunding"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Funding"
+            android:textColor="#CCCCCC"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- 🟣 Transaction -->
+    <LinearLayout
+        android:id="@+id/navTransaction"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackgroundBorderless">
+
+        <ImageView
+            android:id="@+id/iconTransaction"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_transaction"
+            app:tint="#888888"
+            android:contentDescription="Transaction" />
+
+        <TextView
+            android:id="@+id/labelTransaction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transaction"
+            android:textColor="#CCCCCC"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- 🔵 Upload (Center emphasis) -->
+    <LinearLayout
+        android:id="@+id/navUpload"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackgroundBorderless">
+
+        <ImageView
+            android:id="@+id/iconCamera"
+            android:layout_width="58dp"
+            android:layout_height="58dp"
+            android:src="@drawable/ic_camera"
+            app:tint="#888888"
+            android:contentDescription="Upload receipt" />
+
+        <TextView
+            android:id="@+id/labelUpload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upload"
+            android:textColor="#CCCCCC"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- 🔴 Insight -->
+    <LinearLayout
+        android:id="@+id/navInsight"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackgroundBorderless">
+
+        <ImageView
+            android:id="@+id/iconInsight"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_insight"
+            app:tint="#888888"
+            android:contentDescription="Insight" />
+
+        <TextView
+            android:id="@+id/labelInsight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Insight"
+            android:textColor="#CCCCCC"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- 🟢 Overview -->
+    <LinearLayout
+        android:id="@+id/navOverview"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackgroundBorderless">
+
+        <ImageView
+            android:id="@+id/iconOverview"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_overview"
+            app:tint="#03A9F4"
+            android:contentDescription="Overview" />
+
+        <TextView
+            android:id="@+id/labelOverview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Overview"
+            android:textColor="#03A9F4"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+</LinearLayout>
