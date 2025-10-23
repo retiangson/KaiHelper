@@ -7,6 +7,17 @@
     android:background="#121212"
     android:fitsSystemWindows="true">
 
+    <!-- ✅ Navigation bar (back arrow) -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/topAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#1E1E1E"
+        app:title="Expense Details"
+        app:titleTextColor="#FFFFFF"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="#FFFFFF" />
+
     <!-- ✅ Scrollable content area -->
     <LinearLayout
         android:layout_width="match_parent"
