@@ -7,9 +7,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
     //local
-    private const val BASE_URL = "http://192.168.1.227:8000/"
+    //private const val BASE_URL = "http://192.168.1.227:8000/"
     //prod
-    //private const val BASE_URL = "https://yo463uaqt2.execute-api.ap-southeast-2.amazonaws.com/Prod/"
+    private const val BASE_URL = "https://yo463uaqt2.execute-api.ap-southeast-2.amazonaws.com/Prod/"
 
     val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)

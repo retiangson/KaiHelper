@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- ✅ Main dark theme for the app -->
+    <!-- ✅ Main dark theme for the app (unchanged) -->
     <style name="Theme.KaiHelper" parent="Theme.Material3.Dark.NoActionBar">
         <!-- Dark base background and text colors -->
         <item name="android:colorBackground">@color/background_dark</item>
@@ -17,23 +17,31 @@
         <item name="colorOnPrimary">@color/black</item>
     </style>
 
-    <!-- ✅ Dedicated theme for CanHub Cropper (light toolbar for visibility) -->
-    <style name="Theme.KaiHelper.Cropper" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <!-- ✅ Ensure ActionBar and title are visible -->
+
+    <!-- ✅ Fixed: Theme only for CanHub Cropper -->
+    <style name="Theme.KaiHelper.Cropper" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Keep toolbar and DONE button visible -->
         <item name="windowActionBar">true</item>
         <item name="windowNoTitle">false</item>
 
-        <!-- ✅ Toolbar background -->
-        <item name="colorPrimary">@color/background_dark</item>
-        <item name="colorSurface">@color/background_dark</item>
+        <!-- Allow space for system status bar -->
+        <item name="android:fitsSystemWindows">true</item>
+        <item name="android:windowFullscreen">false</item>
 
-        <!-- ✅ Make toolbar icons and text white -->
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="android:textColorPrimary">@color/white</item>
-        <item name="android:textColor">@color/white</item>
+        <!-- Status bar transparent so it doesn’t overlap -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
 
-        <!-- ✅ Optional: keep system bars dark -->
-        <item name="android:statusBarColor">@color/background_dark</item>
+        <!-- Keep navigation bar consistent -->
         <item name="android:navigationBarColor">@color/background_dark</item>
+
+        <!-- Match dark look -->
+        <item name="android:colorBackground">@color/background_dark</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textColorPrimary">@color/white</item>
+
+        <!-- Toolbar colors -->
+        <item name="colorPrimary">@color/background_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
     </style>
+
 </resources>

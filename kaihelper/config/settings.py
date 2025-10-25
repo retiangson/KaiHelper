@@ -16,7 +16,7 @@ class Settings:
     """Application-wide configuration settings loaded from environment variables."""
 
     # 🗄️ Database
-    DB_ENGINE: str = os.getenv("DB_ENGINE", "sqlite").lower()  # sqlite | mysql
+    DB_ENGINE: str = os.getenv("DB_ENGINE", "mysql").lower()  # sqlite | mysql
     DB_NAME: str = os.getenv("DB_NAME", "kaihelper")
     DB_HOST: str = os.getenv("DB_HOST", "")
     DB_PORT: str = os.getenv("DB_PORT", "3306")

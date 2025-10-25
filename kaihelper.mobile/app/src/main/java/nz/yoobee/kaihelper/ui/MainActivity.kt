@@ -18,6 +18,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.GestureDetectorCompat
 import androidx.fragment.app.Fragment
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
@@ -39,6 +41,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 import kotlin.math.abs
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -112,11 +115,29 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // ✅ Automatically adjust padding for status & navigation bars
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val sysBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                view.paddingLeft,
+                sysBars.top,       // Add top padding (status bar / notch)
+                view.paddingRight,
+                sysBars.bottom     // Add bottom padding (nav bar)
+            )
+            insets
+        }
+
         val topAppBar = findViewById<MaterialToolbar>(R.id.topAppBar)
         topAppBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.action_add -> { Toast.makeText(this, "Add clicked", Toast.LENGTH_SHORT).show(); true }
-                R.id.action_menu -> { Toast.makeText(this, "Menu clicked", Toast.LENGTH_SHORT).show(); true }
+                R.id.action_add -> {
+                    Toast.makeText(this, "Add clicked", Toast.LENGTH_SHORT).show()
+                    true
+                }
+                R.id.action_menu -> {
+                    Toast.makeText(this, "Menu clicked", Toast.LENGTH_SHORT).show()
+                    true
+                }
                 else -> false
             }
         }
@@ -138,6 +159,7 @@ class MainActivity : AppCompatActivity() {
             notifyAllFragments()
         }
     }
+
 
     // --------------------------------------------
     // Tabs (shared across fragments)

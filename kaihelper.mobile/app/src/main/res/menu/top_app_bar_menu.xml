@@ -6,6 +6,7 @@
     <item
         android:id="@+id/action_add"
         android:icon="@drawable/ic_add"
+        android:iconTint="@color/white"
         android:title="Add"
         app:showAsAction="always" />
 
@@ -13,6 +14,7 @@
     <item
         android:id="@+id/action_menu"
         android:icon="@drawable/ic_menu"
+        android:iconTint="@color/white"
         android:title="Menu"
         app:showAsAction="always" />
 </menu>
