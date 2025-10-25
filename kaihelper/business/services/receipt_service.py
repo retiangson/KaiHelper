@@ -61,7 +61,8 @@ class ReceiptService(IReceiptService):
         """
         start_time = time.time()
         try:
-            parsed = self._extract_with_gpt(image_bytes)
+            #parsed = self._extract_with_gpt(image_bytes)
+            parsed = self._extract_with_gpt_opt(image_bytes)
             items = [ExtractedItemDTO(**item) for item in parsed.get("items", [])]
             total_amount = float(parsed.get("total_amount", 0.0))
             suggestion = parsed.get("suggestion", "")
@@ -257,70 +258,77 @@ class ReceiptService(IReceiptService):
             b64_image = base64.b64encode(jpeg_bytes).decode("ascii")
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=[
-                    {
-                    "role": "system",
-                    "content": (
-                        "You are an intelligent receipt analysis assistant.\n"
-                        "Your goal is to extract clean, structured data from an image of a purchase receipt.\n"
-                        "\n"
-                        "OUTPUT RULES\n"
-                        "- Return ONLY valid JSON (no extra text, no Markdown).\n"
-                        "- All date and time fields MUST be date-only strings in ISO format: \"YYYY-MM-DD\".\n"
-                        "  • If the receipt shows a datetime, return only the date part.\n"
-                        "  • Normalize day-first dates (e.g., \"17/10/2025\") to \"2025-10-17\".\n"
-                        "  • Convert month names (e.g., \"Oct 17, 2025\") to \"2025-10-17\".\n"
-                        "  • If a date is missing or ambiguous, use null.\n"
-                        "- Every string must be trimmed and reasonably capitalized (title case for names).\n"
-                        "- Numeric values (unit_price, quantity, subtotal_amount, tax_amount, discount_amount, total_amount) must be numbers (float).\n"
-                        "- If a field is missing, include it with null (or an empty array for items).\n"
-                        "\n"
-                        "RESPONSE SHAPE (exact keys):\n"
-                        "{\n"
-                        "  \"store_name\": string | null,\n"
-                        "  \"store_address\": string | null,\n"
-                        "  \"receipt_number\": string | null,\n"
-                        "  \"receipt_date\": \"YYYY-MM-DD\" | null,\n"
-                        "  \"due_date\": \"YYYY-MM-DD\" | null,\n"
-                        "  \"payment_method\": string | null,\n"
-                        "  \"category\": string,\n"
-                        "  \"currency\": string | null,\n"
-                        "  \"items\": [\n"
-                        "    {\n"
-                        "      \"item_name\": string,\n"
-                        "      \"quantity\": float,\n"
-                        "      \"unit_price\": float,\n"
-                        "      \"total_price\": float | null,\n"
-                        "      \"local\": boolean\n"
-                        "    }\n"
-                        "  ],\n"
-                        "  \"subtotal_amount\": float | null,\n"
-                        "  \"tax_amount\": float | null,\n"
-                        "  \"discount_amount\": float | null,\n"
-                        "  \"total_amount\": float,\n"
-                        "  \"suggestion\": string\n"
-                        "}\n"
-                        "\n"
-                        "INTERPRETATION RULES FOR 'local':\n"
-                        "- Set 'local' to true if the product or brand appears to be New Zealand–made, locally produced, or labeled with 'NZ', 'Kiwi', 'Aotearoa', 'Pams', 'Rolling Meadow', etc.\n"
-                        "- Set 'local' to false for international or imported brands (e.g., Maggi, McCain, Nestlé).\n"
-                        "- If uncertain, default to false.\n"
-                        "\n"
-                        "Also include a short, helpful suggestion for how the user might tag or manage this receipt "
-                        "(e.g., \"Consider categorizing this as Groceries for weekly expense tracking.\")."
-                        ),
-                    },
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": "Extract and format this receipt as JSON only."},
+                messages = [
                             {
-                                "type": "image_url",
-                                "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"},
+                                "role": "system",
+                                "content": (
+                                    "You are an intelligent receipt analysis assistant.\n"
+                                    "Your task is to extract clean, structured, and normalized JSON data from an image of a purchase receipt.\n"
+                                    "\n"
+                                    "OUTPUT FORMAT RULES:\n"
+                                    "- Return ONLY valid JSON (no explanations, no markdown, no code fences).\n"
+                                    "- Dates must follow ISO format: \"YYYY-MM-DD\".\n"
+                                    "  • Convert short or compressed dates like \"22NOV25\" → \"2025-11-22\".\n"
+                                    "  • Normalize other variants (e.g., \"17/10/2025\", \"Oct 17 2025\", \"2025.10.17\").\n"
+                                    "  • If the receipt has time info, keep only the date part.\n"
+                                    "  • If no date is found, use the current date.\n"
+                                    "- All strings must be trimmed and reasonably capitalized (e.g., title case for names and brands).\n"
+                                    "- Numeric fields (unit_price, quantity, subtotal_amount, tax_amount, discount_amount, total_amount) must be numbers (floats).\n"
+                                    "- If a field is missing, include it as null (or an empty array for items).\n"
+                                    "\n"
+                                    "ITEM RULES:\n"
+                                    "- Every receipt must include at least one item.\n"
+                                    "- If it is a bill (e.g., electricity, water, internet, rent), the item must describe the service — e.g., the company name and what the bill is for.\n"
+                                    "- Taxes, fees, or any cost component must appear as individual items if explicitly listed on the receipt (e.g., 'GST 15%').\n"
+                                    "- Each item must have: item_name, quantity, unit_price, total_price, and local.\n"
+                                    "- If a total price is available but unit price is missing, assume quantity=1 and unit_price=total_price.\n"
+                                    "\n"
+                                    "FIELD INTERPRETATION RULES:\n"
+                                    "- 'local': true if the brand or product appears to be New Zealand–made or labeled with terms like 'NZ', 'Kiwi', 'Aotearoa', 'Pams', 'Rolling Meadow', etc.\n"
+                                    "- 'local': false for imported or international brands (e.g., Maggi, McCain, Nestlé). Default to false if uncertain.\n"
+                                    "\n"
+                                    "FINAL RESPONSE STRUCTURE:\n"
+                                    "{\n"
+                                    "  \"store_name\": string | null,\n"
+                                    "  \"store_address\": string | null,\n"
+                                    "  \"receipt_number\": string | null,\n"
+                                    "  \"receipt_date\": \"YYYY-MM-DD\" | null,\n"
+                                    "  \"due_date\": \"YYYY-MM-DD\" | null,\n"
+                                    "  \"payment_method\": string | null,\n"
+                                    "  \"category\": string,\n"
+                                    "  \"currency\": string | null,\n"
+                                    "  \"items\": [\n"
+                                    "    {\n"
+                                    "      \"item_name\": string,\n"
+                                    "      \"quantity\": float,\n"
+                                    "      \"unit_price\": float,\n"
+                                    "      \"total_price\": float | null,\n"
+                                    "      \"local\": boolean\n"
+                                    "    }\n"
+                                    "  ],\n"
+                                    "  \"subtotal_amount\": float | null,\n"
+                                    "  \"tax_amount\": float | null,\n"
+                                    "  \"discount_amount\": float | null,\n"
+                                    "  \"total_amount\": float,\n"
+                                    "  \"suggestion\": string\n"
+                                    "}\n"
+                                    "\n"
+                                    "SUGGESTION RULE:\n"
+                                    "- Add a short, friendly suggestion for how the user might categorize or tag the receipt, e.g.,\n"
+                                    "  \"Consider categorizing this as Utilities since it appears to be an electricity bill.\"\n"
+                                ),
+                            },
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": "Extract and format this receipt as JSON only."},
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"},
+                                    },
+                                ],
                             },
                         ],
-                    },
-                ],
                 response_format={"type": "json_object"},
                 temperature=0,
             )
@@ -346,3 +354,91 @@ class ReceiptService(IReceiptService):
             return parsed
         except Exception as err:  # pylint: disable=broad-except
             raise RuntimeError(f"GPT-4o extraction failed: {repr(err)}") from err
+
+import pytesseract
+
+def _extract_with_gpt_opt(self, image_bytes: bytes) -> dict:
+    """
+    Optimized hybrid OCR + GPT extraction.
+    Uses OCR text when clear enough, otherwise falls back to GPT-4o-mini vision.
+    """
+    try:
+        # --- Compress image for faster transfer ---
+        with Image.open(BytesIO(image_bytes)) as img:
+            img = img.convert("RGB")
+            max_w = 1280
+            if img.width > max_w:
+                ratio = max_w / img.width
+                img = img.resize((max_w, int(img.height * ratio)))
+            buf = BytesIO()
+            img.save(buf, format="JPEG", quality=75, optimize=True)
+            jpeg_bytes = buf.getvalue()
+
+        # --- OCR text pre-pass ---
+        ocr_text = pytesseract.image_to_string(Image.open(BytesIO(jpeg_bytes)))
+        ocr_len = len(ocr_text.strip())
+
+        # --- Compact but precise prompt ---
+        system_prompt = (
+            "You are a receipt analysis AI. Extract structured JSON only (no text/markdown). "
+            "Dates → ISO (YYYY-MM-DD). Normalize all formats (22NOV25→2025-11-22). "
+            "Each receipt must have ≥1 item (bills → company/service, taxes → items if costed). "
+            "All numeric values are floats. Missing fields = null (or [] for arrays). "
+            "Response JSON keys: store_name, store_address, receipt_number, receipt_date, due_date, "
+            "payment_method, category, currency, items, subtotal_amount, tax_amount, discount_amount, total_amount, suggestion. "
+            "Items: [{item_name, quantity, unit_price, total_price, local}]. "
+            "'local' = true if NZ-made ('NZ','Kiwi','Aotearoa','Pams','Rolling Meadow'), else false. "
+            "End with a brief categorization suggestion."
+        )
+
+        # --- If OCR text is readable, text-only mode ---
+        if ocr_len > 80:
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Extract and format this receipt as JSON only:\n{ocr_text}"}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0,
+            )
+        else:
+            # --- Fallback to vision ---
+            b64_image = base64.b64encode(jpeg_bytes).decode("ascii")
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Extract and format this receipt as JSON only."},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"}},
+                        ],
+                    },
+                ],
+                response_format={"type": "json_object"},
+                temperature=0,
+            )
+
+        # --- Parse response ---
+        parsed = json.loads(response.choices[0].message.content)
+
+        parsed["category"] = str(parsed.get("category", "Groceries")).strip().capitalize()
+        for item in parsed.get("items", []):
+            item["item_name"] = str(item.get("item_name", "Unknown item")).strip().capitalize()
+
+        parsed.setdefault(
+            "suggestion",
+            "You can save this receipt under 'Groceries' or tag it by store name for tracking."
+        )
+
+        print(
+            f"[GPT-fast] Category: {parsed.get('category')} | Items: {len(parsed.get('items', []))} | "
+            f"Total: {parsed.get('total_amount', 'N/A')} | Mode: {'OCR' if ocr_len>80 else 'Vision'}"
+        )
+        return parsed
+
+    except Exception as err:
+        raise RuntimeError(f"Fast GPT extraction failed: {repr(err)}") from err
+
