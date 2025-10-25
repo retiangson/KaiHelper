@@ -279,7 +279,7 @@ class ReceiptService(IReceiptService):
                                     "- The 'items' array must ALWAYS contain at least one item.\n"
                                     "- If the receipt is a bill, invoice, or payment to a company/person, create an item that represents the service or purpose — e.g., "
                                     "company name, account, or description of what was paid for.\n"
-                                    "- Include taxes, service fees, or surcharges as additional items when they have monetary value.\n"
+                                    "- Include taxes, service fees, or any charges as an items when they have value.\n"
                                     "- Each item must have: item_name, quantity, unit_price, total_price, and local.\n"
                                     "- If only a total amount is shown, set quantity = 1 and unit_price = total_amount.\n"
                                     "- Never leave the 'items' list empty or null. Include at least one descriptive item.\n"
